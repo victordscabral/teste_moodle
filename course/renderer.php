@@ -1341,8 +1341,17 @@ class core_course_renderer extends plugin_renderer_base {
             $content .= $pagingbar;
         }
 
+        //MUDANÇA PARA ALTERAR COLLAPSE
+
+        $isFirst = 1;
+
         foreach ($subcategories as $subcategory) {
-            $content .= $this->coursecat_category($chelper, $subcategory, $depth + 1);
+            if($isFirst == 1){ 
+                $content .= $this->coursecat_category(1, $chelper, $subcategory, $depth + 1); 
+                $isFirst = 0; 
+            }else{ 
+                $content .= $this->coursecat_category(0, $chelper, $subcategory, $depth + 1); 
+            } 
         }
 
         if (!empty($pagingbar)) {
@@ -1395,9 +1404,9 @@ class core_course_renderer extends plugin_renderer_base {
         // Courses
         if ($chelper->get_show_courses() > core_course_renderer::COURSECAT_SHOW_COURSES_COUNT) {
             $courses = array();
-            if (!$chelper->get_courses_display_option('nodisplay')) {
+            
                 $courses = $coursecat->get_courses($chelper->get_courses_display_options());
-            }
+            
             if ($viewmoreurl = $chelper->get_courses_display_option('viewmoreurl')) {
                 // the option for 'View more' link was specified, display more link (if it is link to category view page, add category id)
                 if ($viewmoreurl->compare(new moodle_url('/course/index.php'), URL_MATCH_BASE)) {
@@ -1426,27 +1435,47 @@ class core_course_renderer extends plugin_renderer_base {
      * @param int $depth depth of this category in the current tree
      * @return string
      */
-    protected function coursecat_category(coursecat_helper $chelper, $coursecat, $depth) {
-        // open category tag
+     protected function coursecat_category($key, coursecat_helper $chelper, $coursecat, $depth) {        // open category tag
         $classes = array('category');
         if (empty($coursecat->visible)) {
             $classes[] = 'dimmed_category';
         }
-        if ($chelper->get_subcat_depth() > 0 && $depth >= $chelper->get_subcat_depth()) {
-            // do not load content
-            $categorycontent = '';
-            $classes[] = 'notloaded';
-            if ($coursecat->get_children_count() ||
-                    ($chelper->get_show_courses() >= self::COURSECAT_SHOW_COURSES_COLLAPSED && $coursecat->get_courses_count())) {
-                $classes[] = 'with_children';
-                $classes[] = 'collapsed';
+        if($key == 1){ 
+            if ($chelper->get_subcat_depth() > 0 && $depth >= $chelper->get_subcat_depth()) { 
+                // load category content 
+                $categorycontent = $this->coursecat_category_content($chelper, $coursecat, $depth); 
+                $classes[] = 'loaded'; 
+                if (!empty($categorycontent)) { 
+                    $classes[] = 'with_children'; 
+                } 
+            } else { 
+                // do not load content 
+                $categorycontent = ''; 
+                $classes[] = 'notloaded'; 
+                if ($coursecat->get_children_count() || 
+                        ($chelper->get_show_courses() >= self::COURSECAT_SHOW_COURSES_COLLAPSED && $coursecat->get_courses_count())) { 
+                    $classes[] = 'with_children'; 
+                    $classes[] = 'collapsed'; 
+                } 
+            }     
+        }else{ 
+            if ($chelper->get_subcat_depth() > 0 && $depth >= $chelper->get_subcat_depth()) { 
+                // do not load content 
+                $categorycontent = ''; 
+                $classes[] = 'notloaded'; 
+                if ($coursecat->get_children_count() || 
+                        ($chelper->get_show_courses() >= self::COURSECAT_SHOW_COURSES_COLLAPSED && $coursecat->get_courses_count())) { 
+                    $classes[] = 'with_children'; 
+                    $classes[] = 'collapsed'; 
+                } 
             }
-        } else {
-            // load category content
-            $categorycontent = $this->coursecat_category_content($chelper, $coursecat, $depth);
-            $classes[] = 'loaded';
-            if (!empty($categorycontent)) {
-                $classes[] = 'with_children';
+            else { 
+                // load category content 
+                $categorycontent = $this->coursecat_category_content($chelper, $coursecat, $depth); 
+                $classes[] = 'loaded'; 
+                if (!empty($categorycontent)) { 
+                    $classes[] = 'with_children'; 
+                } 
             }
         }
 

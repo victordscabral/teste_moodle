@@ -59,11 +59,14 @@ if ($CFG->forcelogin) {
 }
 
 if ($categoryid && !$category->visible && !has_capability('moodle/category:viewhiddencategories', $PAGE->context)) {
-    throw new moodle_exception('unknowncategory');
+	$content = "Ainda não há cursos disponíveis para esta categoria";
+}
+else {
+	$content = $courserenderer->course_category($categoryid);
 }
 
 $PAGE->set_heading($site->fullname);
-$content = $courserenderer->course_category($categoryid);
+//$content = $courserenderer->course_category($categoryid);
 
 echo $OUTPUT->header();
 echo $OUTPUT->skip_link_target();
