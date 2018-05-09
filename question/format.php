@@ -607,7 +607,7 @@ class qformat_default {
      */
     protected function defaultquestion() {
         global $CFG;
-        static $defaultshuffleanswers = null;
+        static $defaultshuffleanswers = 0; //O valor antes era null, porém foi alterado para 0 afim de que no momento que as questões sejam importadas pelo formato GIFT, não ative essa opção para as questões de Associação, Múltipla escolha simples ou com múltiplas respostas.
         if (is_null($defaultshuffleanswers)) {
             $defaultshuffleanswers = get_config('quiz', 'shuffleanswers');
         }
