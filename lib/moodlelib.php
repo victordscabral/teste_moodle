@@ -2209,9 +2209,37 @@ function format_time($totalsecs, $str = null) {
  * @return string the formatted date/time.
  */
 function userdate($date, $format = '', $timezone = 99, $fixday = true, $fixhour = true) {
-    $calendartype = \core_calendar\type_factory::get_calendar_instance();
-    return $calendartype->timestamp_to_date_string($date, $format, $timezone, $fixday, $fixhour);
+   $calendartype = \core_calendar\type_factory::get_calendar_instance();
+   return trocaMes($calendartype->timestamp_to_date_string($date, $format, $timezone, $fixday, $fixhour));
+}                                                         
+  
+function trocaMes($data) {
+    $dataPt = $data;
+    $dataPt = str_replace("January", "Janeiro", $dataPt);     
+    $dataPt = str_replace("February", "Fevereiro", $dataPt);       
+    $dataPt = str_replace("March", "Mar&ccedil;o", $dataPt);
+    $dataPt = str_replace("April", "Abril", $dataPt);
+    $dataPt = str_replace("May", "Maio", $dataPt);
+    $dataPt = str_replace("June", "Junho", $dataPt);        
+    $dataPt = str_replace("July", "Julho", $dataPt);
+    $dataPt = str_replace("August", "Agosto", $dataPt);
+    $dataPt = str_replace("September", "Setembro", $dataPt);
+    $dataPt = str_replace("October", "Outubro", $dataPt);
+    $dataPt = str_replace("November", "Novembro", $dataPt);
+    $dataPt = str_replace("December", "Dezembro", $dataPt);
+					                             
+    $dataPt = str_replace("Sunday", "Domingo", $dataPt);
+    $dataPt = str_replace("Monday", "Segunda-feira", $dataPt);
+    $dataPt = str_replace("Tuesday", "Ter&ccedil;a-feira", $dataPt);
+    $dataPt = str_replace("Thursday", "Quinta-feira", $dataPt);
+    $dataPt = str_replace("Friday", "Sexta-feira", $dataPt);
+    $dataPt = str_replace("Wednesday", "Quarta-feira", $dataPt);
+    $dataPt = str_replace("Saturday", "S&aacute;bado", $dataPt);
+							                                                 
+									   
+    return $dataPt;  
 }
+   
 
 /**
  * Returns a formatted date ensuring it is UTF-8.
@@ -2636,6 +2664,30 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
         }
     }
 
+
+    // Verifica se o usuário tem que trocar o CPF.
+    if (get_user_preferences('auth_forcecpfchange') && !\core\session\manager::is_loggedinas()) {
+        $userauth = get_auth_plugin($USER->auth);
+        if (!$preventredirect) {
+            if ($setwantsurltome) {
+                $SESSION->wantsurl = qualified_me();
+            }
+            if ($changeurl = $userauth->change_password_url()) {
+                // Use plugin custom url.
+                redirect($changeurl);
+            } else {
+                // Use moodle internal method.
+                if (empty($CFG->loginhttps)) {
+                    redirect($CFG->wwwroot .'/login/change_cpf.php');
+                } else {
+                    $wwwroot = str_replace('http:', 'https:', $CFG->wwwroot);
+                    redirect($wwwroot .'/login/change_cpf.php');
+                }
+            }
+        }
+    }
+
+
     // Check whether the user should be changing password (but only if it is REALLY them).
     if (get_user_preferences('auth_forcepasswordchange') && !\core\session\manager::is_loggedinas()) {
         $userauth = get_auth_plugin($USER->auth);
@@ -2862,8 +2914,8 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
                 }
             }
         }
-
-        if (!$access) {
+	// MGBF: evita redirecionamento em caso de estar logado como outro usuário
+	if (!$access && !\core\session\manager::is_loggedinas()) {
             if ($preventredirect) {
                 throw new require_login_exception('Not enrolled');
             }
@@ -4442,6 +4494,13 @@ function complete_user_login($user) {
     // Select password change url.
     $userauth = get_auth_plugin($USER->auth);
 
+    // Verifica se o usuário tem que trocar o CPF.
+    if (get_user_preferences('auth_forcecpfchange', false)) {
+        require_once($CFG->dirroot . '/login/lib.php');
+        $SESSION->wantsurl = core_login_get_return_url();
+        redirect($CFG->httpswwwroot.'/login/change_cpf.php');
+    }
+
     // Check whether the user should be changing password.
     if (get_user_preferences('auth_forcepasswordchange', false)) {
         if ($userauth->can_change_password()) {
@@ -4455,7 +4514,7 @@ function complete_user_login($user) {
         } else {
             print_error('nopasswordchangeforced', 'auth');
         }
-    }
+    }    
     return $USER;
 }
 
@@ -4634,6 +4693,30 @@ function update_internal_user_password($user, $password, $fasthash = false) {
  * @param int $mnethostid
  * @return mixed False, or A {@link $USER} object.
  */
+
+
+function update_internal_user_cpf($user, $cpf) {
+    global $CFG, $DB;
+    //    $DB->set_field('user_info_data', 'data',  $cpf, array('userid' => $user->id, 'fieldid' => 8));
+
+	$cpfdata = new stdClass();
+		$cpfdata->userid = $user->id;
+		$cpfdata->fieldid = 8;
+		$cpfdata->data = $cpf;
+      	$DB->insert_record('user_info_data', $cpfdata);
+
+    $cpfuser = new stdClass();
+    	$cpfuser->id = $user->id;
+    	$cpfuser->username = $cpf;
+    	$DB->update_record('user', $cpfuser);
+
+    return true;
+}
+
+
+
+
+
 function get_complete_user_data($field, $value, $mnethostid = null) {
     global $CFG, $DB;
 

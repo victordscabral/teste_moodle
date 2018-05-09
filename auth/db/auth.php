@@ -267,6 +267,24 @@ class auth_plugin_db extends auth_plugin_base {
         }
     }
 
+    function user_update_cpf($user, $newcpf) {
+        global $DB;
+
+        if ($this->is_internal()) {
+            $puser = $DB->get_record('user_info_data', array('id'=>$user->id), '*', MUST_EXIST);
+
+            if (update_internal_user_cpf($puser, $newcpf)) {
+                $user->data = $puser->data;
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            // We should have never been called!
+            return false;
+        }
+    }
+
     /**
      * Synchronizes user from external db to moodle user table.
      *
