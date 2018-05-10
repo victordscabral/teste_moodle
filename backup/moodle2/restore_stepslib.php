@@ -2632,6 +2632,17 @@ class restore_calendarevents_structure_step extends restore_structure_step {
         $data = (object)$data;
         $oldid = $data->id;
         $restorefiles = true; // We'll restore the files
+        // User overrides for activities are identified by having a courseid of zero with
+        // both a modulename and instance value set.
+        $isuseroverride = !$data->courseid && $data->modulename && $data->instance;
+
+        // If we don't want to include user data and this record is a user override event
+        // for an activity then we should not create it. (Only activity events can be user override events - which must have this
+        // setting).
+        if ($isuseroverride && $this->task->setting_exists('userinfo') && !$this->task->get_setting_value('userinfo')) {
+            return;
+        }
+
         // Find the userid and the groupid associated with the event.
         $data->userid = $this->get_mappingid('user', $data->userid);
         if ($data->userid === false) {
@@ -2667,10 +2678,12 @@ class restore_calendarevents_structure_step extends restore_structure_step {
                 'name'           => $data->name,
                 'description'    => $data->description,
                 'format'         => $data->format,
-                'courseid'       => $this->get_courseid(),
+                // User overrides in activities use a course id of zero. All other event types
+                // must use the mapped course id.
+                'courseid'       => $data->courseid ? $this->get_courseid() : 0,
                 'groupid'        => $data->groupid,
                 'userid'         => $data->userid,
-                'repeatid'       => $data->repeatid,
+                'repeatid'       => $this->get_mappingid('event', $data->repeatid),
                 'modulename'     => $data->modulename,
                 'eventtype'      => $data->eventtype,
                 'timestart'      => $this->apply_date_offset($data->timestart),
@@ -2688,17 +2701,27 @@ class restore_calendarevents_structure_step extends restore_structure_step {
                   FROM {event}
                  WHERE " . $DB->sql_compare_text('name', 255) . " = " . $DB->sql_compare_text('?', 255) . "
                    AND courseid = ?
-                   AND repeatid = ?
                    AND modulename = ?
+                   AND instance = ?
                    AND timestart = ?
                    AND timeduration = ?
                    AND " . $DB->sql_compare_text('description', 255) . " = " . $DB->sql_compare_text('?', 255);
-        $arg = array ($params['name'], $params['courseid'], $params['repeatid'], $params['modulename'], $params['timestart'], $params['timeduration'], $params['description']);
+        $arg = array ($params['name'], $params['courseid'], $params['modulename'], $params['instance'], $params['timestart'], $params['timeduration'], $params['description']);
         $result = $DB->record_exists_sql($sql, $arg);
         if (empty($result)) {
             $newitemid = $DB->insert_record('event', $params);
             $this->set_mapping('event', $oldid, $newitemid);
             $this->set_mapping('event_description', $oldid, $newitemid, $restorefiles);
+        }
+        // With repeating events, each event has the repeatid pointed at the first occurrence.
+        // Since the repeatid will be empty when the first occurrence is restored,
+        // Get the repeatid from the second occurrence of the repeating event and use that to update the first occurrence.
+        // Then keep a list of repeatids so we only perform this update once.
+        static $repeatids = array();
+        if (!empty($params['repeatid']) && !in_array($params['repeatid'], $repeatids)) {
+            // This entry is repeated so the repeatid field must be set.
+            $DB->set_field('event', 'repeatid', $params['repeatid'], array('id' => $params['repeatid']));
+            $repeatids[] = $params['repeatid'];
         }
 
     }
@@ -3036,7 +3059,8 @@ class restore_course_logs_structure_step extends restore_structure_step {
 
         $data = (object)($data);
 
-        $data->time = $this->apply_date_offset($data->time);
+        // There is no need to roll dates. Logs are supposed to be immutable. See MDL-44961.
+
         $data->userid = $this->get_mappingid('user', $data->userid);
         $data->course = $this->get_courseid();
         $data->cmid = 0;
@@ -3083,7 +3107,8 @@ class restore_activity_logs_structure_step extends restore_course_logs_structure
 
         $data = (object)($data);
 
-        $data->time = $this->apply_date_offset($data->time);
+        // There is no need to roll dates. Logs are supposed to be immutable. See MDL-44961.
+
         $data->userid = $this->get_mappingid('user', $data->userid);
         $data->course = $this->get_courseid();
         $data->cmid = $this->task->get_moduleid();

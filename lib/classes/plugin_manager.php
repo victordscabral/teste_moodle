@@ -146,7 +146,7 @@ class core_plugin_manager {
     public function get_plugin_types() {
         if (func_num_args() > 0) {
             if (!func_get_arg(0)) {
-                throw coding_exception('core_plugin_manager->get_plugin_types() does not support relative paths.');
+                throw new coding_exception('core_plugin_manager->get_plugin_types() does not support relative paths.');
             }
         }
         if ($this->plugintypes) {
@@ -1955,7 +1955,7 @@ class core_plugin_manager {
 
         if (!$this->is_plugin_folder_removable($plugin->component)) {
             throw new moodle_exception('err_removing_unremovable_folder', 'core_plugin', '',
-                array('plugin' => $pluginfo->component, 'rootdir' => $pluginfo->rootdir),
+                array('plugin' => $plugin->component, 'rootdir' => $plugin->rootdir),
                 'plugin root folder is not removable as expected');
         }
 

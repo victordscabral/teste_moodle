@@ -17,7 +17,7 @@
 /**
  * Used to convert a bootswatch file from https://bootswatch.com/ to a Moodle preset.
  *
- * @package    theme_boost
+ * @package    theme_ilb
  * @subpackage cli
  * @copyright  2016 Damyon Wiese
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

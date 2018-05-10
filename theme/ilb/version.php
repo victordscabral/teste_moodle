@@ -15,15 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Boost.
+ * Tema desenvolvido para o Saberes (ILB)
  *
- * @package    theme_boost
+ * @package    theme_ilb
  * @copyright  2016 Frédéric Massart
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2016120500;
+$plugin->version   = 2018050900;
 $plugin->requires  = 2016112900;
-$plugin->component = 'theme_boost';
+$plugin->component = 'theme_ilb';

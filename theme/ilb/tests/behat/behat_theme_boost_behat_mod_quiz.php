@@ -35,7 +35,7 @@ use Behat\Mink\Exception\ExpectationException as ExpectationException;
  * @copyright 2016 Damyon Wiese
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class behat_theme_boost_behat_mod_quiz extends behat_mod_quiz {
+class behat_theme_ilb_behat_mod_quiz extends behat_mod_quiz {
 
     public function i_add_question_to_the_quiz_with($questiontype, $quizname, TableNode $questiondata) {
         $quizname = $this->escape($quizname);

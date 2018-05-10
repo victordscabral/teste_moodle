@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template theme_boost/frontpage_ilb
+    @template theme_ilb/frontpage_ilb
 
     Frontpage ILB layout template.
 
@@ -222,5 +222,5 @@
 </body>
 </html>
 {{#js}}
-require(['theme_boost/loader']);
+require(['theme_ilb/loader']);
 {{/js}}

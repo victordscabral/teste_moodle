@@ -4573,18 +4573,54 @@ class core_dml_testcase extends database_driver_testcase {
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('name', XMLDB_TYPE_CHAR, '20', null, null);
         $table->add_field('intro', XMLDB_TYPE_TEXT, 'big', null, null);
+        // Add a CHAR field named using a word reserved for all the supported DB servers.
+        $table->add_field('where', XMLDB_TYPE_CHAR, '20', null, null, null, 'localhost');
+        // Add a TEXT field named using a word reserved for all the supported DB servers.
+        $table->add_field('from', XMLDB_TYPE_TEXT, 'big', null, null);
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $dbman->create_table($table);
 
-        $id1 = (string)$DB->insert_record($tablename, array('name' => null, 'intro' => null));
-        $id2 = (string)$DB->insert_record($tablename, array('name' => '', 'intro' => ''));
-        $id3 = (string)$DB->insert_record($tablename, array('name' => 'xxyy', 'intro' => 'vvzz'));
-        $id4 = (string)$DB->insert_record($tablename, array('name' => 'aa bb aa bb', 'intro' => 'cc dd cc aa'));
-        $id5 = (string)$DB->insert_record($tablename, array('name' => 'kkllll', 'intro' => 'kkllll'));
+        $fromfield = $dbman->generator->getEncQuoted('from');
+        $DB->execute("INSERT INTO {".$tablename."} (name,intro,$fromfield) VALUES (NULL,NULL,'localhost')");
+        $DB->execute("INSERT INTO {".$tablename."} (name,intro,$fromfield) VALUES ('','','localhost')");
+        $DB->execute("INSERT INTO {".$tablename."} (name,intro,$fromfield) VALUES ('xxyy','vvzz','localhost')");
+        $DB->execute("INSERT INTO {".$tablename."} (name,intro,$fromfield) VALUES ('aa bb aa bb','cc dd cc aa','localhost')");
+        $DB->execute("INSERT INTO {".$tablename."} (name,intro,$fromfield) VALUES ('kkllll','kkllll','localhost')");
 
         $expected = $DB->get_records($tablename, array(), 'id ASC');
+        $idx = 1;
+        $id1 = $id2 = $id3 = $id4 = $id5 = 0;
+        foreach (array_keys($expected) as $identifier) {
+            ${"id$idx"} = (string)$identifier;
+            $idx++;
+        }
 
         $columns = $DB->get_columns($tablename);
+
+        // Replace should work even with columns named using a reserved word.
+        $this->assertEquals('C', $columns['where']->meta_type);
+        $this->assertEquals('localhost', $expected[$id1]->where);
+        $this->assertEquals('localhost', $expected[$id2]->where);
+        $this->assertEquals('localhost', $expected[$id3]->where);
+        $this->assertEquals('localhost', $expected[$id4]->where);
+        $this->assertEquals('localhost', $expected[$id5]->where);
+        $DB->replace_all_text($tablename, $columns['where'], 'localhost', '::1');
+        $result = $DB->get_records($tablename, array(), 'id ASC');
+        $expected[$id1]->where = '::1';
+        $expected[$id2]->where = '::1';
+        $expected[$id3]->where = '::1';
+        $expected[$id4]->where = '::1';
+        $expected[$id5]->where = '::1';
+        $this->assertEquals($expected, $result);
+        $this->assertEquals('X', $columns['from']->meta_type);
+        $DB->replace_all_text($tablename, $columns['from'], 'localhost', '127.0.0.1');
+        $result = $DB->get_records($tablename, array(), 'id ASC');
+        $expected[$id1]->from = '127.0.0.1';
+        $expected[$id2]->from = '127.0.0.1';
+        $expected[$id3]->from = '127.0.0.1';
+        $expected[$id4]->from = '127.0.0.1';
+        $expected[$id5]->from = '127.0.0.1';
+        $this->assertEquals($expected, $result);
 
         $DB->replace_all_text($tablename, $columns['name'], 'aa', 'o');
         $result = $DB->get_records($tablename, array(), 'id ASC');
@@ -5542,6 +5578,42 @@ class core_dml_testcase extends database_driver_testcase {
         foreach ($tables as $table) {
             $dbman->drop_table($table);
         }
+    }
+
+    /**
+     * Test that the database has full utf8 support (4 bytes).
+     */
+    public function test_four_byte_character_insertion() {
+        $DB = $this->tdb;
+
+        if ($DB->get_dbfamily() === 'mysql' && strpos($DB->get_dbcollation(), 'utf8_') === 0) {
+            $this->markTestSkipped($DB->get_name() .
+                    ' does not support 4 byte characters with only a utf8 collation.
+                    Please change to utf8mb4 for full utf8 support.');
+        }
+
+        $dbman = $this->tdb->get_manager();
+
+        $table = $this->get_test_table();
+        $tablename = $table->getName();
+
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('name', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('content', XMLDB_TYPE_TEXT, 'big', null, XMLDB_NOTNULL);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $dbman->create_table($table);
+
+        $data = array(
+            'name' => 'Name with a four byte character 𠮟る',
+            'content' => 'Content with a four byte emoji 📝 memo.'
+        );
+
+        $insertid = $DB->insert_record($tablename, $data);
+        $result = $DB->get_record($tablename, array('id' => $insertid));
+        $this->assertEquals($data['name'], $result->name);
+        $this->assertEquals($data['content'], $result->content);
+
+        $dbman->drop_table($table);
     }
 }
 

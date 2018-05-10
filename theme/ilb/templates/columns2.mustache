@@ -15,11 +15,11 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template theme_boost/columns2
+    @template theme_ilb/columns2
 
     Admin time setting template.
 
-    Boost 2 column layout template.
+    Ilb 2 column layout template.
 
     Context variables required for this template:
     * sitename - The name of the site
@@ -55,7 +55,7 @@
     <link rel="shortcut icon" href="{{{ output.favicon }}}" />
     {{{ output.standard_head_html }}}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{>theme_boost/head2}}
+    {{>theme_ilb/head2}}
 </head>
 
 <body {{{ bodyattributes }}}>
@@ -64,7 +64,7 @@
 
     {{{ output.standard_top_of_body_html }}}
 
-    {{>theme_boost/headerLogado}}
+    {{>theme_ilb/headerLogado}}
 
     <div id="page" class="container-fluid">
         {{{ output.full_header }}}
@@ -95,7 +95,7 @@
             </div>
         </div>
     </div>
-    {{> theme_boost/nav-drawer }}
+    {{> theme_ilb/nav-drawer }}
 </div>
 <footer id="page-footer" class="p-y-1" style="background-color: #002e56; color: #FFFFFF; text-align: center;">
     <div class="container" style="background-color: #002e56;">
@@ -112,7 +112,7 @@
         <nav class="nav navbar-nav hidden-lg-up">
             {{# output.custom_menu_flat }}
                 <ul class="list-unstyled p-t-1">
-                    {{> theme_boost/custom_menu_footer }}
+                    {{> theme_ilb/custom_menu_footer }}
                 </ul>
             {{/ output.custom_menu_flat }}
         </nav>
@@ -124,8 +124,8 @@
 </body>
 </html>
 {{#js}}
-require(['theme_boost/loader']);
-require(['theme_boost/drawer'], function(mod) {
+require(['theme_ilb/loader']);
+require(['theme_ilb/drawer'], function(mod) {
     mod.init();
 });
 {{/js}}

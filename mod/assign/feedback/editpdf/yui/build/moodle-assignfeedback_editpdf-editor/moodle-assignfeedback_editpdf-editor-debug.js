@@ -2247,7 +2247,7 @@ Y.extend(COMMENTSEARCH, M.core.dialogue, {
         placeholder = M.util.get_string('filter', 'assignfeedback_editpdf');
         commentfilter = Y.Node.create('<input type="text" size="20" placeholder="' + placeholder + '"/>');
         container.append(commentfilter);
-        commentlist = Y.Node.create('<ul role="menu" class="assignfeedback_editpdf_menu"/>');
+        commentlist = Y.Node.create('<ul role="menu" class="assignfeedback_editpdf_search"/>');
         container.append(commentlist);
 
         commentfilter.on('keyup', this.filter_search_comments, this);
@@ -2298,18 +2298,18 @@ Y.extend(COMMENTSEARCH, M.core.dialogue, {
         e.preventDefault();
         var target = e.target.ancestor('li'),
             comment = target.getData('comment'),
-            editor = this.get('editor'),
-            pageselect = editor.get_dialogue_element(SELECTOR.PAGESELECT);
+            editor = this.get('editor');
 
         this.hide();
 
-        editor.currentpage = parseInt(pageselect.get('value'), 10);
-        if (comment.pageno !== editor.currentpage) {
+        if (comment.pageno === editor.currentpage) {
+            comment.drawable.nodes[0].one('textarea').focus();
+        } else {
             // Comment is on a different page.
             editor.currentpage = comment.pageno;
             editor.change_page();
+            comment.drawable.nodes[0].one('textarea').focus();
         }
-        comment.drawable.nodes[0].one('textarea').focus();
     },
 
     /**
@@ -3242,6 +3242,14 @@ EDITOR.prototype = {
     currentannotation: null,
 
     /**
+     * Track the previous annotation so we can remove selection highlights.
+     * @property lastannotation
+     * @type M.assignfeedback_editpdf.annotation
+     * @protected
+     */
+    lastannotation: null,
+
+    /**
      * Last selected annotation tool
      * @property lastannotationtool
      * @type String
@@ -3871,8 +3879,7 @@ EDITOR.prototype = {
             scrollleft = canvas.get('docScrollX'),
             point = {x: e.clientX - offset[0] + scrollleft,
                      y: e.clientY - offset[1] + scrolltop},
-            selected = false,
-            lastannotation;
+            selected = false;
 
         // Ignore right mouse click.
         if (e.button === 3) {
@@ -3904,13 +3911,13 @@ EDITOR.prototype = {
             });
 
             if (selected) {
-                lastannotation = this.currentannotation;
+                this.lastannotation = this.currentannotation;
                 this.currentannotation = selected;
-                if (lastannotation && lastannotation !== selected) {
+                if (this.lastannotation && this.lastannotation !== selected) {
                     // Redraw the last selected annotation to remove the highlight.
-                    if (lastannotation.drawable) {
-                        lastannotation.drawable.erase();
-                        this.drawables.push(lastannotation.draw());
+                    if (this.lastannotation.drawable) {
+                        this.lastannotation.drawable.erase();
+                        this.drawables.push(this.lastannotation.draw());
                     }
                 }
                 // Redraw the newly selected annotation to show the highlight.
@@ -3918,6 +3925,15 @@ EDITOR.prototype = {
                     this.currentannotation.drawable.erase();
                 }
                 this.drawables.push(this.currentannotation.draw());
+            } else {
+                this.lastannotation = this.currentannotation;
+                this.currentannotation = null;
+
+                // Redraw the last selected annotation to remove the highlight.
+                if (this.lastannotation && this.lastannotation.drawable) {
+                    this.lastannotation.drawable.erase();
+                    this.drawables.push(this.lastannotation.draw());
+                }
             }
         }
         if (this.currentannotation) {
@@ -4084,10 +4100,7 @@ EDITOR.prototype = {
      */
     save_current_page: function() {
         var ajaxurl = AJAXBASE,
-            pageselect = this.get_dialogue_element(SELECTOR.PAGESELECT),
             config;
-
-        this.currentpage = parseInt(pageselect.get('value'), 10);
 
         config = {
             method: 'post',
@@ -4262,9 +4275,7 @@ EDITOR.prototype = {
      */
     previous_page: function(e) {
         e.preventDefault();
-        var pageselect = this.get_dialogue_element(SELECTOR.PAGESELECT);
-
-        this.currentpage = parseInt(pageselect.get('value'), 10) - 1;
+        this.currentpage--;
         if (this.currentpage < 0) {
             this.currentpage = 0;
         }
@@ -4278,9 +4289,7 @@ EDITOR.prototype = {
      */
     next_page: function(e) {
         e.preventDefault();
-        var pageselect = this.get_dialogue_element(SELECTOR.PAGESELECT);
-
-        this.currentpage = parseInt(pageselect.get('value'), 10) + 1;
+        this.currentpage++;
         if (this.currentpage >= this.pages.length) {
             this.currentpage = this.pages.length - 1;
         }

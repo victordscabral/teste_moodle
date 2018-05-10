@@ -6,13 +6,13 @@
     {{{ output.standard_head_html }}}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    {{>theme_boost/head}}
+    {{>theme_ilb/head}}
 
 </head>
 
 <body {{{ bodyattributes }}}>
 
-{{>theme_boost/headerLogado}}
+{{>theme_ilb/headerLogado}}
 
 <div id="page-wrapper">
 
@@ -45,16 +45,16 @@
             </div>
         </div>
     </div>
-    {{> theme_boost/nav-drawer }}
+    {{> theme_ilb/nav-drawer }}
 </div>
 
-{{>theme_boost/footerSimples}}
+{{>theme_ilb/footerSimples}}
 
 </body>
 </html>
 {{#js}}
-require(['theme_boost/loader']);
-require(['theme_boost/drawer'], function(mod) {
+require(['theme_ilb/loader']);
+require(['theme_ilb/drawer'], function(mod) {
     mod.init();
 });
 {{/js}}

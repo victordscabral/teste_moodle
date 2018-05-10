@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * A one column layout for the boost theme.
+ * A one column layout for the ilb theme.
  *
- * @package   theme_boost
+ * @package   theme_ilb
  * @copyright 2016 Damyon Wiese
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -86,9 +86,9 @@ if (isloggedin()) {
 	];
 
 	$templatecontext['flatnavigation'] = $PAGE->flatnav;
-	//	echo $OUTPUT->render_from_template('theme_boost/frontpage_ilblogado', $templatecontext);
-	//echo $OUTPUT->render_from_template('theme_boost/columns2', $templatecontext);
-  echo $OUTPUT->render_from_template('theme_boost/frontpage_ilb', $templatecontext);
+	//	echo $OUTPUT->render_from_template('theme_ilb/frontpage_ilblogado', $templatecontext);
+	//echo $OUTPUT->render_from_template('theme_ilb/columns2', $templatecontext);
+  echo $OUTPUT->render_from_template('theme_ilb/frontpage_ilb', $templatecontext);
 
 } else {
 	$bodyattributes = $OUTPUT->body_attributes([]);
@@ -102,5 +102,5 @@ if (isloggedin()) {
 	
 
 	
-	echo $OUTPUT->render_from_template('theme_boost/frontpage_ilb', $templatecontext);
+	echo $OUTPUT->render_from_template('theme_ilb/frontpage_ilb', $templatecontext);
 }

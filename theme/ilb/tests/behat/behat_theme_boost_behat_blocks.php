@@ -35,7 +35,7 @@ require_once(__DIR__ . '/../../../../blocks/tests/behat/behat_blocks.php');
  * @copyright  2012 David Monllaó
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class behat_theme_boost_behat_blocks extends behat_blocks {
+class behat_theme_ilb_behat_blocks extends behat_blocks {
 
     public function i_add_the_block($blockname) {
         $this->execute('behat_navigation::i_select_from_flat_navigation_drawer', get_string('addblock'));

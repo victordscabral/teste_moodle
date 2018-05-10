@@ -50,6 +50,14 @@ class core_course_renderer extends plugin_renderer_base {
     protected $strings;
 
     /**
+     * Whether a category content is being initially rendered with children. This is mainly used by the
+     * core_course_renderer::corsecat_tree() to render the appropriate action for the Expand/Collapse all link on
+     * page load.
+     * @var bool
+     */
+    protected $categoryexpandedonload = false;
+
+    /**
      * Override the constructor so that we can initialise the string cache
      *
      * @param moodle_page $page
@@ -909,6 +917,34 @@ class core_course_renderer extends plugin_renderer_base {
     }
 
     /**
+     * Message displayed to the user when they try to access unavailable activity following URL
+     *
+     * This method is a very simplified version of {@link course_section_cm()} to be part of the error
+     * notification only. It also does not check if module is visible on course page or not.
+     *
+     * The message will be displayed inside notification!
+     *
+     * @param cm_info $cm
+     * @return string
+     */
+    public function course_section_cm_unavailable_error_message(cm_info $cm) {
+        if ($cm->uservisible) {
+            return null;
+        }
+        if (!$cm->availableinfo) {
+            return get_string('activityiscurrentlyhidden');
+        }
+
+        $altname = get_accesshide(' ' . $cm->modfullname);
+        $name = html_writer::empty_tag('img', array('src' => $cm->get_icon_url(),
+                'class' => 'iconlarge activityicon', 'alt' => ' ', 'role' => 'presentation')) .
+            html_writer::tag('span', ' '.$cm->get_formatted_name() . $altname, array('class' => 'instancename'));
+        $formattedinfo = \core_availability\info::format_info($cm->availableinfo, $cm->get_course());
+        return html_writer::div($name, 'activityinstance-error') .
+        html_writer::div($formattedinfo, 'availabilityinfo-error');
+    }
+
+    /**
      * Renders HTML to display a list of course modules in a course section
      * Also displays "move here" controls in Javascript-disabled mode
      *
@@ -1341,17 +1377,8 @@ class core_course_renderer extends plugin_renderer_base {
             $content .= $pagingbar;
         }
 
-        //MUDANÇA PARA ALTERAR COLLAPSE
-
-        $isFirst = 1;
-
         foreach ($subcategories as $subcategory) {
-            if($isFirst == 1){ 
-                $content .= $this->coursecat_category(1, $chelper, $subcategory, $depth + 1); 
-                $isFirst = 0; 
-            }else{ 
-                $content .= $this->coursecat_category(0, $chelper, $subcategory, $depth + 1); 
-            } 
+            $content .= $this->coursecat_category($chelper, $subcategory, $depth + 1);
         }
 
         if (!empty($pagingbar)) {
@@ -1404,9 +1431,9 @@ class core_course_renderer extends plugin_renderer_base {
         // Courses
         if ($chelper->get_show_courses() > core_course_renderer::COURSECAT_SHOW_COURSES_COUNT) {
             $courses = array();
-            
+            if (!$chelper->get_courses_display_option('nodisplay')) {
                 $courses = $coursecat->get_courses($chelper->get_courses_display_options());
-            
+            }
             if ($viewmoreurl = $chelper->get_courses_display_option('viewmoreurl')) {
                 // the option for 'View more' link was specified, display more link (if it is link to category view page, add category id)
                 if ($viewmoreurl->compare(new moodle_url('/course/index.php'), URL_MATCH_BASE)) {
@@ -1435,47 +1462,29 @@ class core_course_renderer extends plugin_renderer_base {
      * @param int $depth depth of this category in the current tree
      * @return string
      */
-     protected function coursecat_category($key, coursecat_helper $chelper, $coursecat, $depth) {        // open category tag
+    protected function coursecat_category(coursecat_helper $chelper, $coursecat, $depth) {
+        // open category tag
         $classes = array('category');
         if (empty($coursecat->visible)) {
             $classes[] = 'dimmed_category';
         }
-        if($key == 1){ 
-            if ($chelper->get_subcat_depth() > 0 && $depth >= $chelper->get_subcat_depth()) { 
-                // load category content 
-                $categorycontent = $this->coursecat_category_content($chelper, $coursecat, $depth); 
-                $classes[] = 'loaded'; 
-                if (!empty($categorycontent)) { 
-                    $classes[] = 'with_children'; 
-                } 
-            } else { 
-                // do not load content 
-                $categorycontent = ''; 
-                $classes[] = 'notloaded'; 
-                if ($coursecat->get_children_count() || 
-                        ($chelper->get_show_courses() >= self::COURSECAT_SHOW_COURSES_COLLAPSED && $coursecat->get_courses_count())) { 
-                    $classes[] = 'with_children'; 
-                    $classes[] = 'collapsed'; 
-                } 
-            }     
-        }else{ 
-            if ($chelper->get_subcat_depth() > 0 && $depth >= $chelper->get_subcat_depth()) { 
-                // do not load content 
-                $categorycontent = ''; 
-                $classes[] = 'notloaded'; 
-                if ($coursecat->get_children_count() || 
-                        ($chelper->get_show_courses() >= self::COURSECAT_SHOW_COURSES_COLLAPSED && $coursecat->get_courses_count())) { 
-                    $classes[] = 'with_children'; 
-                    $classes[] = 'collapsed'; 
-                } 
+        if ($chelper->get_subcat_depth() > 0 && $depth >= $chelper->get_subcat_depth()) {
+            // do not load content
+            $categorycontent = '';
+            $classes[] = 'notloaded';
+            if ($coursecat->get_children_count() ||
+                    ($chelper->get_show_courses() >= self::COURSECAT_SHOW_COURSES_COLLAPSED && $coursecat->get_courses_count())) {
+                $classes[] = 'with_children';
+                $classes[] = 'collapsed';
             }
-            else { 
-                // load category content 
-                $categorycontent = $this->coursecat_category_content($chelper, $coursecat, $depth); 
-                $classes[] = 'loaded'; 
-                if (!empty($categorycontent)) { 
-                    $classes[] = 'with_children'; 
-                } 
+        } else {
+            // load category content
+            $categorycontent = $this->coursecat_category_content($chelper, $coursecat, $depth);
+            $classes[] = 'loaded';
+            if (!empty($categorycontent)) {
+                $classes[] = 'with_children';
+                // Category content loaded with children.
+                $this->categoryexpandedonload = true;
             }
         }
 
@@ -1522,6 +1531,8 @@ class core_course_renderer extends plugin_renderer_base {
      * @return string
      */
     protected function coursecat_tree(coursecat_helper $chelper, $coursecat) {
+        // Reset the category expanded flag for this course category tree first.
+        $this->categoryexpandedonload = false;
         $categorycontent = $this->coursecat_category_content($chelper, $coursecat, 0);
         if (empty($categorycontent)) {
             return '';
@@ -1537,10 +1548,17 @@ class core_course_renderer extends plugin_renderer_base {
                 'collapseexpand',
             );
 
+            // Check if the category content contains subcategories with children's content loaded.
+            if ($this->categoryexpandedonload) {
+                $classes[] = 'collapse-all';
+                $linkname = get_string('collapseall');
+            } else {
+                $linkname = get_string('expandall');
+            }
+
             // Only show the collapse/expand if there are children to expand.
             $content .= html_writer::start_tag('div', array('class' => 'collapsible-actions'));
-            $content .= html_writer::link('#', get_string('expandall'),
-                    array('class' => implode(' ', $classes)));
+            $content .= html_writer::link('#', $linkname, array('class' => implode(' ', $classes)));
             $content .= html_writer::end_tag('div');
             $this->page->requires->strings_for_js(array('collapseall', 'expandall'), 'moodle');
         }

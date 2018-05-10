@@ -17,38 +17,44 @@
 {{!
     Page header.
 }}
+<header role="banner" class="pos-f-t navbar navbar-full navbar-light bg-faded navbar-static-top moodle-has-zindex">
 
+    <div class="container-fluid navbar-nav">
 
-<!-- NAV SUPERIOR DO SENADO -->
-<header>
-  <div id="header-institucional">
-    <div class="NavGlobal navbar navbar-static-top">
-      <div class="NavGlobal-container">
-        <div class="pull-right dropdown" role="navigation">
-          <a data-toggle="dropdown" class="NavGlobal-toggle dropdown-toggle">
-            <div class="Icon Icon--menu Icon--md"></div>
-            <span class="u-alignMiddle"> Portais</span>
-          </a>
-          <ul class="NavGlobal-dropdownMenu dropdown-menu">
-            <li><a href="http://www.senado.gov.br/institucional/">Institucional</a></li>
-            <li><a href="http://www25.senado.leg.br/web/senadores/">Senadores</a></li>
-            <li><a href="http://www25.senado.leg.br/web/atividade/">Atividade Legislativa</a></li>
-            <li><a href="http://www12.senado.gov.br/noticias/">Notícias</a></li>
-            <li><a href="http://www12.senado.gov.br/publicacoes/">Publicação e Documentação</a></li>
-            <li><a href="http://www12.senado.gov.br/orcamento/">Orçamento</a></li>
-            <li><a href="http://www12.senado.gov.br/transparencia/">Transparência</a></li>
-            <li><a href="http://www12.senado.gov.br/ecidadania/">e-Cidadania</a></li>
-          </ul>
+        <div data-region="drawer-toggle">
+            <button aria-expanded="{{#navdraweropen}}true{{/navdraweropen}}{{^navdraweropen}}false{{/navdraweropen}}" aria-controls="nav-drawer" type="button" class="btn pull-xs-left m-r-1 btn-secondary" data-action="toggle-drawer" data-side="left" data-preference="drawer-open-nav"><span aria-hidden="true">&#9776;</span><span class="sr-only">{{#str}}sidepanel, core{{/str}}</span></button>
         </div>
-        <div class="NavGlobal-logo pull-left">
-          <a href="http://www.senado.gov.br/">
-            <img src="//www.senado.gov.br/inc/essencial/img/senado.svg" alt="Senado Federal" height="23" width="170">
-          </a>
-        </div>
-        <div class="NavGlobal-middle">
-          <a href="http://www12.senado.gov.br/institucional/falecomosenado">Fale com o Senado</a>
-        </div>
-      </div>
+
+        <a href="{{{ config.wwwroot }}}" class="navbar-brand {{# output.should_display_navbar_logo }}has-logo{{/ output.should_display_navbar_logo }}
+            {{^ output.should_display_navbar_logo }}
+                hidden-sm-down
+            {{/ output.should_display_navbar_logo }}
+                ">
+            {{# output.should_display_navbar_logo }}
+                <span class="logo hidden-xs-down">
+                    <img src="{{output.get_compact_logo_url}}" alt="{{sitename}}">
+                </span>
+            {{/ output.should_display_navbar_logo }}
+            <span class="site-name hidden-sm-down">{{{ sitename }}}</span>
+        </a>
+
+        <!-- user_menu -->
+        {{{ output.user_menu }}}
+
+        <!-- navbar_plugin_output -->
+        {{{ output.navbar_plugin_output }}}
+
+        <!-- search_box -->
+        <span class="hidden-md-down">
+        {{{ output.search_box }}}
+        </span>
+
+        <nav class="nav navbar-nav hidden-md-down">
+            <!-- custom_menu -->
+            {{{ output.custom_menu }}}
+            <!-- page_heading_menu -->
+            {{{ output.page_heading_menu }}}
+        </nav>
     </div>
-  </div>
-</header><!-- FIM DA NAV SUPERIOR DO SENADO -->
+</header>
+

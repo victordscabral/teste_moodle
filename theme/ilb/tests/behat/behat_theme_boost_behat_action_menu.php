@@ -35,7 +35,7 @@ require_once(__DIR__ . '/../../../../lib/tests/behat/behat_action_menu.php');
  * @copyright  2016 Damyon Wiese
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class behat_theme_boost_behat_action_menu extends behat_action_menu {
+class behat_theme_ilb_behat_action_menu extends behat_action_menu {
 
     public function i_open_the_action_menu_in($element, $selectortype) {
         // Gets the node based on the requested selector type and locator.

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package   theme_boost
+ * @package   theme_ilb
  * @copyright 2016 Ryan Wyllie
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -23,18 +23,18 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($ADMIN->fulltree) {
-    $settings = new theme_boost_admin_settingspage_tabs('themesettingboost', get_string('configtitle', 'theme_boost'));
-    $page = new admin_settingpage('theme_boost_general', get_string('generalsettings', 'theme_boost'));
+    $settings = new theme_ilb_admin_settingspage_tabs('themesettingilb', get_string('configtitle', 'theme_ilb'));
+    $page = new admin_settingpage('theme_ilb_general', get_string('generalsettings', 'theme_ilb'));
 
     // Preset.
-    $name = 'theme_boost/preset';
-    $title = get_string('preset', 'theme_boost');
-    $description = get_string('preset_desc', 'theme_boost');
+    $name = 'theme_ilb/preset';
+    $title = get_string('preset', 'theme_ilb');
+    $description = get_string('preset_desc', 'theme_ilb');
     $default = 'default.scss';
 
     $context = context_system::instance();
     $fs = get_file_storage();
-    $files = $fs->get_area_files($context->id, 'theme_boost', 'preset', 0, 'itemid, filepath, filename', false);
+    $files = $fs->get_area_files($context->id, 'theme_ilb', 'preset', 0, 'itemid, filepath, filename', false);
 
     $choices = [];
     foreach ($files as $file) {
@@ -49,9 +49,9 @@ if ($ADMIN->fulltree) {
     $page->add($setting);
 
     // Preset files setting.
-    $name = 'theme_boost/presetfiles';
-    $title = get_string('presetfiles','theme_boost');
-    $description = get_string('presetfiles_desc', 'theme_boost');
+    $name = 'theme_ilb/presetfiles';
+    $title = get_string('presetfiles','theme_ilb');
+    $description = get_string('presetfiles_desc', 'theme_ilb');
 
     $setting = new admin_setting_configstoredfile($name, $title, $description, 'preset', 0,
         array('maxfiles' => 20, 'accepted_types' => array('.scss')));
@@ -59,9 +59,9 @@ if ($ADMIN->fulltree) {
 
     // Variable $body-color.
     // We use an empty default value because the default colour should come from the preset.
-    $name = 'theme_boost/brandcolor';
-    $title = get_string('brandcolor', 'theme_boost');
-    $description = get_string('brandcolor_desc', 'theme_boost');
+    $name = 'theme_ilb/brandcolor';
+    $title = get_string('brandcolor', 'theme_ilb');
+    $description = get_string('brandcolor_desc', 'theme_ilb');
     $setting = new admin_setting_configcolourpicker($name, $title, $description, '');
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
@@ -70,17 +70,17 @@ if ($ADMIN->fulltree) {
     $settings->add($page);
 
     // Advanced settings.
-    $page = new admin_settingpage('theme_boost_advanced', get_string('advancedsettings', 'theme_boost'));
+    $page = new admin_settingpage('theme_ilb_advanced', get_string('advancedsettings', 'theme_ilb'));
 
     // Raw SCSS to include before the content.
-    $setting = new admin_setting_scsscode('theme_boost/scsspre',
-        get_string('rawscsspre', 'theme_boost'), get_string('rawscsspre_desc', 'theme_boost'), '', PARAM_RAW);
+    $setting = new admin_setting_scsscode('theme_ilb/scsspre',
+        get_string('rawscsspre', 'theme_ilb'), get_string('rawscsspre_desc', 'theme_ilb'), '', PARAM_RAW);
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 
     // Raw SCSS to include after the content.
-    $setting = new admin_setting_scsscode('theme_boost/scss', get_string('rawscss', 'theme_boost'),
-        get_string('rawscss_desc', 'theme_boost'), '', PARAM_RAW);
+    $setting = new admin_setting_scsscode('theme_ilb/scss', get_string('rawscss', 'theme_ilb'),
+        get_string('rawscss_desc', 'theme_ilb'), '', PARAM_RAW);
     $setting->set_updatedcallback('theme_reset_all_caches');
     $page->add($setting);
 

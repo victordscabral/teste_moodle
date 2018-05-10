@@ -57,6 +57,13 @@ class api {
         global $CFG;
         require_once($CFG->libdir . '/adminlib.php');
 
+        // Check if we can return this from cache.
+        $cache = \cache::make('tool_mobile', 'plugininfo');
+        $pluginsinfo = $cache->get('mobileplugins');
+        if ($pluginsinfo !== false) {
+            return (array)$pluginsinfo;
+        }
+
         $pluginsinfo = [];
         $plugintypes = core_component::get_plugin_types();
 
@@ -68,7 +75,7 @@ class api {
                 $component = $plugintype . '_' . $plugin;
                 $version = get_component_version($component);
 
-                require_once("$path/db/mobile.php");
+                require("$path/db/mobile.php");
                 foreach ($addons as $addonname => $addoninfo) {
                     $plugininfo = array(
                         'component' => $component,
@@ -81,7 +88,7 @@ class api {
                     );
 
                     // All the mobile packages must be under the plugin mobile directory.
-                    $package = $path . DIRECTORY_SEPARATOR . 'mobile' . DIRECTORY_SEPARATOR . $addonname . '.zip';
+                    $package = $path . '/mobile/' . $addonname . '.zip';
                     if (file_exists($package)) {
                         $plugininfo['fileurl'] = $CFG->wwwroot . '' . str_replace($CFG->dirroot, '', $package);
                         $plugininfo['filehash'] = sha1_file($package);
@@ -91,6 +98,9 @@ class api {
                 }
             }
         }
+
+        $cache->set('mobileplugins', $pluginsinfo);
+
         return $pluginsinfo;
     }
 
@@ -117,7 +127,7 @@ class api {
             'rememberusername' => $CFG->rememberusername,
             'authloginviaemail' => $CFG->authloginviaemail,
             'registerauth' => $CFG->registerauth,
-            'forgottenpasswordurl' => $CFG->forgottenpasswordurl,
+            'forgottenpasswordurl' => clean_param($CFG->forgottenpasswordurl, PARAM_URL), // We may expect a mailto: here.
             'authinstructions' => $authinstructions,
             'authnoneenabled' => (int) is_enabled_auth('none'),
             'enablewebservices' => $CFG->enablewebservices,
@@ -143,10 +153,11 @@ class api {
             $settings['launchurl'] = $url->out(false);
         }
 
-        if ($logourl = $OUTPUT->get_logo_url()) {
+        // Check that we are receiving a moodle_url object, themes can override get_logo_url and may return incorrect values.
+        if (($logourl = $OUTPUT->get_logo_url()) && $logourl instanceof moodle_url) {
             $settings['logourl'] = $logourl->out(false);
         }
-        if ($compactlogourl = $OUTPUT->get_compact_logo_url()) {
+        if (($compactlogourl = $OUTPUT->get_compact_logo_url()) && $compactlogourl instanceof moodle_url) {
             $settings['compactlogourl'] = $compactlogourl->out(false);
         }
 
@@ -193,12 +204,17 @@ class api {
         }
 
         if (empty($section) or $section == 'sitepolicies') {
+            $settings->sitepolicy = $CFG->sitepolicy;
             $settings->disableuserimages = $CFG->disableuserimages;
         }
 
         if (empty($section) or $section == 'gradessettings') {
             require_once($CFG->dirroot . '/user/lib.php');
-            $settings->mygradesurl = user_mygrades_url()->out(false);
+            $settings->mygradesurl = user_mygrades_url();
+            // The previous function may return moodle_url instances or plain string URLs.
+            if ($settings->mygradesurl instanceof moodle_url) {
+                $settings->mygradesurl = $settings->mygradesurl->out(false);
+            }
         }
 
         return $settings;

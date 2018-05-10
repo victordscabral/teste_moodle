@@ -27,7 +27,7 @@ require_once(__DIR__ . '/../../../../grade/tests/behat/behat_grade.php');
 
 use Behat\Gherkin\Node\TableNode as TableNode;
 
-class behat_theme_boost_behat_grade extends behat_grade {
+class behat_theme_ilb_behat_grade extends behat_grade {
 
     public function i_set_the_following_settings_for_grade_item($gradeitem, TableNode $data) {
 

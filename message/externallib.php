@@ -24,6 +24,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 require_once("$CFG->libdir/externallib.php");
 require_once($CFG->dirroot . "/message/lib.php");
 
@@ -2201,12 +2203,7 @@ class core_message_external extends external_api {
             )
         );
 
-        if (empty($params['userid'])) {
-            $params['userid'] = $USER->id;
-        }
-
-        $user = core_user::get_user($params['userid'], '*', MUST_EXIST);
-        core_user::require_active_user($user);
+        $user = self::validate_preferences_permissions($params['userid']);
 
         $processor = get_message_processor($name);
         $preferences = [];

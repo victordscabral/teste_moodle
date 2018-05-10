@@ -34,7 +34,7 @@ use Behat\Mink\Exception\ExpectationException as ExpectationException,
  * @copyright  2016 Damyon Wiese
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class behat_theme_boost_behat_repository_upload extends behat_repository_upload {
+class behat_theme_ilb_behat_repository_upload extends behat_repository_upload {
 
     protected function get_filepicker_node($filepickerelement) {
 

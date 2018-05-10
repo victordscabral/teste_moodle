@@ -23,6 +23,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 require_once("$CFG->libdir/externallib.php");
 
 /**
@@ -131,6 +133,7 @@ class core_user_external extends external_api {
         global $CFG, $DB;
         require_once($CFG->dirroot."/lib/weblib.php");
         require_once($CFG->dirroot."/user/lib.php");
+        require_once($CFG->dirroot."/user/editlib.php");
         require_once($CFG->dirroot."/user/profile/lib.php"); // Required for customfields related function.
 
         // Ensure the current user is allowed to run this function.
@@ -229,9 +232,11 @@ class core_user_external extends external_api {
 
             // Preferences.
             if (!empty($user['preferences'])) {
+                $userpref = (object)$user;
                 foreach ($user['preferences'] as $preference) {
-                    set_user_preference($preference['type'], $preference['value'], $user['id']);
+                    $userpref->{'preference_'.$preference['type']} = $preference['value'];
                 }
+                useredit_update_user_preference($userpref);
             }
 
             $userids[] = array('id' => $user['id'], 'username' => $user['username']);
@@ -359,6 +364,8 @@ class core_user_external extends external_api {
         global $USER, $CFG;
 
         require_once($CFG->dirroot . '/user/lib.php');
+        require_once($CFG->dirroot . '/user/editlib.php');
+        require_once($CFG->dirroot . '/message/lib.php');
 
         if (empty($userid)) {
             $userid = $USER->id;
@@ -373,38 +380,29 @@ class core_user_external extends external_api {
         );
         self::validate_parameters(self::update_user_preferences_parameters(), $params);
 
-        if ($userid == $USER->id) {
-            require_capability('moodle/user:editownmessageprofile', $systemcontext);
-        } else {
-            $personalcontext = context_user::instance($userid);
-            require_capability('moodle/user:editmessageprofile', $personalcontext);
-            // No editing of guest user account.
-            if (isguestuser($userid)) {
-                print_error('guestnoeditmessageother', 'message');
-            }
-            // No editing of admins by non-admins.
-            if (is_siteadmin($userid) and !is_siteadmin($USER)) {
-                print_error('useradmineditadmin');
-            }
-        }
-
         // Preferences.
         if (!empty($preferences)) {
+            $userpref = ['id' => $userid];
             foreach ($preferences as $preference) {
-                set_user_preference($preference['type'], $preference['value'], $userid);
+                $userpref['preference_' . $preference['type']] = $preference['value'];
             }
+            useredit_update_user_preference($userpref);
         }
 
         // Check if they want to update the email.
         if ($emailstop !== null) {
-            $user = new stdClass();
-            $user->id = $userid;
-            $user->emailstop = $emailstop;
-            user_update_user($user);
+            $otheruser = ($userid == $USER->id) ? $USER : core_user::get_user($userid, '*', MUST_EXIST);
+            core_user::require_active_user($otheruser);
+            if (core_message_can_edit_message_profile($otheruser) && $otheruser->emailstop != $emailstop) {
+                $user = new stdClass();
+                $user->id = $userid;
+                $user->emailstop = $emailstop;
+                user_update_user($user);
 
-            // Update the $USER if we should.
-            if ($userid == $USER->id) {
-                $USER->emailstop = $emailstop;
+                // Update the $USER if we should.
+                if ($userid == $USER->id) {
+                    $USER->emailstop = $emailstop;
+                }
             }
         }
 
@@ -521,6 +519,7 @@ class core_user_external extends external_api {
         global $CFG, $DB, $USER;
         require_once($CFG->dirroot."/user/lib.php");
         require_once($CFG->dirroot."/user/profile/lib.php"); // Required for customfields related function.
+        require_once($CFG->dirroot.'/user/editlib.php');
 
         // Ensure the current user is allowed to run this function.
         $context = context_system::instance();
@@ -549,6 +548,16 @@ class core_user_external extends external_api {
             if ($existinguser->deleted or is_mnet_remote_user($existinguser) or isguestuser($existinguser->id)) {
                 continue;
             }
+            // Check duplicated emails.
+            if (isset($user['email']) && $user['email'] !== $existinguser->email) {
+                if (!validate_email($user['email'])) {
+                    continue;
+                } else if (empty($CFG->allowaccountssameemail) &&
+                        $DB->record_exists('user', array('email' => $user['email'], 'mnethostid' => $CFG->mnet_localhost_id))) {
+                    continue;
+                }
+            }
+
             user_update_user($user, true, false);
 
             // Update user picture if it was specified for this user.
@@ -582,9 +591,11 @@ class core_user_external extends external_api {
 
             // Preferences.
             if (!empty($user['preferences'])) {
+                $userpref = clone($existinguser);
                 foreach ($user['preferences'] as $preference) {
-                    set_user_preference($preference['type'], $preference['value'], $user['id']);
+                    $userpref->{'preference_'.$preference['type']} = $preference['value'];
                 }
+                useredit_update_user_preference($userpref);
             }
             if (isset($user['suspended']) and $user['suspended']) {
                 \core\session\manager::kill_user_sessions($user['id']);
@@ -1710,7 +1721,6 @@ class core_user_external extends external_api {
 
         $context = context_system::instance();
         self::validate_context($context);
-        require_capability('moodle/site:config', $context);
 
         $userscache = array();
         foreach ($params['preferences'] as $pref) {
@@ -1734,11 +1744,21 @@ class core_user_external extends external_api {
             }
 
             try {
-                set_user_preference($pref['name'], $pref['value'], $user);
-                $saved[] = array(
-                    'name' => $pref['name'],
-                    'userid' => $user->id,
-                );
+                if (core_user::can_edit_preference($pref['name'], $user)) {
+                    $value = core_user::clean_preference($pref['value'], $pref['name']);
+                    set_user_preference($pref['name'], $value, $user->id);
+                    $saved[] = array(
+                        'name' => $pref['name'],
+                        'userid' => $user->id,
+                    );
+                } else {
+                    $warnings[] = array(
+                        'item' => 'user',
+                        'itemid' => $user->id,
+                        'warningcode' => 'nopermission',
+                        'message' => 'You are not allowed to change the preference '.s($pref['name']).' for user '.$user->id
+                    );
+                }
             } catch (Exception $e) {
                 $warnings[] = array(
                     'item' => 'user',

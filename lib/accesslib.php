@@ -2743,20 +2743,28 @@ function get_component_string($component, $contextlevel) {
 
 /**
  * Gets the list of roles assigned to this context and up (parents)
- * from the list of roles that are visible on user profile page
- * and participants page.
+ * from the aggregation of:
+ * a) the list of roles that are visible on user profile page and participants page (profileroles setting) and;
+ * b) if applicable, those roles that are assigned in the context.
  *
  * @param context $context
  * @return array
  */
 function get_profile_roles(context $context) {
     global $CFG, $DB;
-
-    if (empty($CFG->profileroles)) {
-        return array();
+    // If the current user can assign roles, then they can see all roles on the profile and participants page,
+    // provided the roles are assigned to at least 1 user in the context. If not, only the policy-defined roles.
+    if (has_capability('moodle/role:assign', $context)) {
+        $rolesinscope = array_keys(get_all_roles($context));
+    } else {
+        $rolesinscope = empty($CFG->profileroles) ? [] : array_map('trim', explode(',', $CFG->profileroles));
     }
 
-    list($rallowed, $params) = $DB->get_in_or_equal(explode(',', $CFG->profileroles), SQL_PARAMS_NAMED, 'a');
+    if (empty($rolesinscope)) {
+        return [];
+    }
+
+    list($rallowed, $params) = $DB->get_in_or_equal($rolesinscope, SQL_PARAMS_NAMED, 'a');
     list($contextlist, $cparams) = $DB->get_in_or_equal($context->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'p');
     $params = array_merge($params, $cparams);
 
@@ -2815,18 +2823,23 @@ function get_roles_used_in_context(context $context) {
  */
 function get_user_roles_in_course($userid, $courseid) {
     global $CFG, $DB;
-
-    if (empty($CFG->profileroles)) {
-        return '';
-    }
-
     if ($courseid == SITEID) {
         $context = context_system::instance();
     } else {
         $context = context_course::instance($courseid);
     }
+    // If the current user can assign roles, then they can see all roles on the profile and participants page,
+    // provided the roles are assigned to at least 1 user in the context. If not, only the policy-defined roles.
+    if (has_capability('moodle/role:assign', $context)) {
+        $rolesinscope = array_keys(get_all_roles($context));
+    } else {
+        $rolesinscope = empty($CFG->profileroles) ? [] : array_map('trim', explode(',', $CFG->profileroles));
+    }
+    if (empty($rolesinscope)) {
+        return '';
+    }
 
-    list($rallowed, $params) = $DB->get_in_or_equal(explode(',', $CFG->profileroles), SQL_PARAMS_NAMED, 'a');
+    list($rallowed, $params) = $DB->get_in_or_equal($rolesinscope, SQL_PARAMS_NAMED, 'a');
     list($contextlist, $cparams) = $DB->get_in_or_equal($context->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'p');
     $params = array_merge($params, $cparams);
 
@@ -3986,20 +3999,26 @@ function count_role_users($roleid, context $context, $parent = false) {
  * @param int $userid User ID or null for current user
  * @param bool $doanything True if 'doanything' is permitted (default)
  * @param string $fieldsexceptid Leave blank if you only need 'id' in the course records;
- *   otherwise use a comma-separated list of the fields you require, not including id
+ *   otherwise use a comma-separated list of the fields you require, not including id.
+ *   Add ctxid, ctxpath, ctxdepth etc to return course context information for preloading.
  * @param string $orderby If set, use a comma-separated list of fields from course
  *   table with sql modifiers (DESC) if needed
+ * @param int $limit Limit the number of courses to return on success. Zero equals all entries.
  * @return array|bool Array of courses, if none found false is returned.
  */
-function get_user_capability_course($capability, $userid = null, $doanything = true, $fieldsexceptid = '', $orderby = '') {
+function get_user_capability_course($capability, $userid = null, $doanything = true, $fieldsexceptid = '', $orderby = '',
+        $limit = 0) {
     global $DB;
 
     // Convert fields list and ordering
     $fieldlist = '';
     if ($fieldsexceptid) {
-        $fields = explode(',', $fieldsexceptid);
+        $fields = array_map('trim', explode(',', $fieldsexceptid));
         foreach($fields as $field) {
-            $fieldlist .= ',c.'.$field;
+            // Context fields have a different alias and are added further down.
+            if (strpos($field, 'ctx') !== 0) {
+                $fieldlist .= ',c.'.$field;
+            }
         }
     }
     if ($orderby) {
@@ -4020,6 +4039,13 @@ function get_user_capability_course($capability, $userid = null, $doanything = t
 
     $contextpreload = context_helper::get_preload_record_columns_sql('x');
 
+    $contextlist = ['ctxid', 'ctxpath', 'ctxdepth', 'ctxlevel', 'ctxinstance'];
+    $unsetitems = $contextlist;
+    if ($fieldsexceptid) {
+        $coursefields = array_map('trim', explode(',', $fieldsexceptid));
+        $unsetitems = array_diff($contextlist, $coursefields);
+    }
+
     $courses = array();
     $rs = $DB->get_recordset_sql("SELECT c.id $fieldlist, $contextpreload
                                     FROM {course} c
@@ -4027,12 +4053,23 @@ function get_user_capability_course($capability, $userid = null, $doanything = t
                                 $orderby");
     // Check capability for each course in turn
     foreach ($rs as $course) {
-        context_helper::preload_from_record($course);
+        // The preload_from_record() unsets the context related fields, but it is possible that our caller may
+        // want them returned too (so they can use them for their own context preloading). For that reason we
+        // pass a clone.
+        context_helper::preload_from_record(clone($course));
         $context = context_course::instance($course->id);
         if (has_capability($capability, $context, $userid, $doanything)) {
+            // Unset context fields if they were not asked for.
+            foreach ($unsetitems as $item) {
+                unset($course->$item);
+            }
             // We've got the capability. Make the record look like a course record
             // and store it
             $courses[] = $course;
+            $limit--;
+            if ($limit == 0) {
+                break;
+            }
         }
     }
     $rs->close();

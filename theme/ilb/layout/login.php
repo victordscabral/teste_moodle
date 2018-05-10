@@ -19,9 +19,9 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/../config.php');
 
 /**
- * A login page layout for the boost theme.
+ * A login page layout for the ilb theme.
  *
- * @package   theme_boost
+ * @package   theme_ilb
  * @copyright 2016 Damyon Wiese
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -35,5 +35,5 @@ $templatecontext = [
     'moodle_url' => $CFG->wwwroot
 ];
 
-echo $OUTPUT->render_from_template('theme_boost/login', $templatecontext);
+echo $OUTPUT->render_from_template('theme_ilb/login', $templatecontext);
 

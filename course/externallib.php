@@ -256,8 +256,9 @@ class core_course_external extends external_api {
 
                         if (!empty($cm->showdescription) or $cm->modname == 'label') {
                             // We want to use the external format. However from reading get_formatted_content(), $cm->content format is always FORMAT_HTML.
+                            $options = array('noclean' => true);
                             list($module['description'], $descriptionformat) = external_format_text($cm->content,
-                                FORMAT_HTML, $modcontext->id, $cm->modname, 'intro', $cm->id);
+                                FORMAT_HTML, $modcontext->id, $cm->modname, 'intro', $cm->id, $options);
                         }
 
                         //url of the module
@@ -433,7 +434,9 @@ class core_course_external extends external_api {
                 $exceptionparam->courseid = $course->id;
                 throw new moodle_exception('errorcoursecontextnotvalid', 'webservice', '', $exceptionparam);
             }
-            require_capability('moodle/course:view', $context);
+            if ($course->id != SITEID) {
+                require_capability('moodle/course:view', $context);
+            }
 
             $courseinfo = array();
             $courseinfo['id'] = $course->id;
@@ -721,6 +724,11 @@ class core_course_external extends external_api {
 
             //Note: create_course() core function check shortname, idnumber, category
             $course['id'] = create_course((object) $course)->id;
+
+            // Create sections that aren't created by core create_course().
+            if (!empty($course['numsections']) && $course['numsections'] > 0) {
+                course_create_sections_if_missing((object)$course, range(0, $course['numsections']));
+            }
 
             $resultcourses[] = array('id' => $course['id'], 'shortname' => $course['shortname']);
         }
@@ -2241,6 +2249,7 @@ class core_course_external extends external_api {
         $coursereturns['overviewfiles']     = $files;
         $coursereturns['contacts']          = $coursecontacts;
         $coursereturns['enrollmentmethods'] = $enroltypes;
+        $coursereturns['sortorder']         = $course->sortorder;
         return $coursereturns;
     }
 
@@ -2983,7 +2992,7 @@ class core_course_external extends external_api {
             // Return information for any user that can access the course.
             $coursefields = array('format', 'showgrades', 'newsitems', 'startdate', 'maxbytes', 'showreports', 'visible',
                 'groupmode', 'groupmodeforce', 'defaultgroupingid', 'enablecompletion', 'completionnotify', 'lang', 'theme',
-                'sortorder', 'marker');
+                'marker');
 
             // Information for managers only.
             if ($canupdatecourse) {
@@ -3064,6 +3073,7 @@ class core_course_external extends external_api {
      */
     public static function check_updates($courseid, $tocheck, $filter = array()) {
         global $CFG, $DB;
+        require_once($CFG->dirroot . "/course/lib.php");
 
         $params = self::validate_parameters(
             self::check_updates_parameters(),

@@ -36,7 +36,7 @@ use Behat\Gherkin\Node\TableNode as TableNode,
  * @copyright  2016 Damyon Wiese
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class behat_theme_boost_behat_course extends behat_course {
+class behat_theme_ilb_behat_course extends behat_course {
 
     public function i_open_actions_menu($activityname) {
 

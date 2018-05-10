@@ -28,17 +28,17 @@ define(['jquery', './tether', 'core/event'], function(jQuery, Tether, Event) {
     window.jQuery = jQuery;
     window.Tether = Tether;
 
-    require(['theme_boost/util',
-            'theme_boost/alert',
-            'theme_boost/button',
-            'theme_boost/carousel',
-            'theme_boost/collapse',
-            'theme_boost/dropdown',
-            'theme_boost/modal',
-            'theme_boost/scrollspy',
-            'theme_boost/tab',
-            'theme_boost/tooltip',
-            'theme_boost/popover'],
+    require(['theme_ilb/util',
+            'theme_ilb/alert',
+            'theme_ilb/button',
+            'theme_ilb/carousel',
+            'theme_ilb/collapse',
+            'theme_ilb/dropdown',
+            'theme_ilb/modal',
+            'theme_ilb/scrollspy',
+            'theme_ilb/tab',
+            'theme_ilb/tooltip',
+            'theme_ilb/popover'],
             function() {
 
         jQuery('body').popover({

@@ -55,7 +55,6 @@
     <link rel="shortcut icon" href="{{{ output.favicon }}}" />
     {{{ output.standard_head_html }}}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{>theme_boost/head2}}
 </head>
 
 <body {{{ bodyattributes }}}>
@@ -64,7 +63,7 @@
 
     {{{ output.standard_top_of_body_html }}}
 
-    {{>theme_boost/headerLogado}}
+    {{>theme_boost/header}}
 
     <div id="page" class="container-fluid">
         {{{ output.full_header }}}
@@ -83,7 +82,6 @@
                     {{/hasregionmainsettingsmenu}}
                     {{{ output.course_content_header }}}
                     {{{ output.main_content }}}
-                    {{{ output.activity_navigation }}}
                     {{{ output.course_content_footer }}}
                     </div>
                 </section>
@@ -97,17 +95,15 @@
     </div>
     {{> theme_boost/nav-drawer }}
 </div>
-<footer id="page-footer" class="p-y-1" style="background-color: #002e56; color: #FFFFFF; text-align: center;">
-    <div class="container" style="background-color: #002e56;">
-      <p>Senado Federal - Praça dos Três Poderes - Brasília DF - CEP 70165-900</p>
-        <div id="course-footer" style="font-color: white;">{{{ output.course_footer }}}</div>
+<footer id="page-footer" class="p-y-1 bg-inverse">
+    <div class="container">
+        <div id="course-footer">{{{ output.course_footer }}}</div>
 
-        <!-- {{# output.page_doc_link }}
+        {{# output.page_doc_link }}
             <p class="helplink">{{{ output.page_doc_link }}}</p>
-        {{/ output.page_doc_link }} -->
+        {{/ output.page_doc_link }}
 
         {{{ output.login_info }}}
-        <div class="tool_usertours-resettourcontainer"></div>
         {{{ output.home_link }}}
         <nav class="nav navbar-nav hidden-lg-up">
             {{# output.custom_menu_flat }}

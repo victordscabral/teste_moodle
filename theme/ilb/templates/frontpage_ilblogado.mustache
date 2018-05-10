@@ -15,11 +15,11 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template theme_boost/columns2
+    @template theme_ilb/columns2
 
     Admin time setting template.
 
-    Boost 2 column layout template.
+    Ilb 2 column layout template.
 
     Context variables required for this template:
     * sitename - The name of the site
@@ -74,13 +74,13 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
 <![endif]-->
 
-  {{>theme_boost/head}}
+  {{>theme_ilb/head}}
 
 </head>
 
 <body {{{ bodyattributes }}}>
 
-     {{>theme_boost/headerLogado}}
+     {{>theme_ilb/headerLogado}}
 
 <div id="page-wrapper">
 
@@ -195,14 +195,14 @@
                      </div>
                  </div>
              </div>
-             {{> theme_boost/nav-drawer }}
+             {{> theme_ilb/nav-drawer }}
          </div>
   <!-- cursos fim -->
     </div>
   </div>
 </div>
   </div>
-{{>theme_boost/footerSimples}}
+{{>theme_ilb/footerSimples}}
 
 
 <!-- fim conteudo pagina logado -->
@@ -222,7 +222,7 @@
         <nav class="nav navbar-nav hidden-lg-up">
             {{# output.custom_menu_flat }}
                 <ul class="list-unstyled p-t-1">
-                    {{> theme_boost/custom_menu_footer }}
+                    {{> theme_ilb/custom_menu_footer }}
                 </ul>
             {{/ output.custom_menu_flat }}
         </nav>
@@ -234,8 +234,8 @@
 </body>
 </html>
 {{#js}}
-require(['theme_boost/loader']);
-require(['theme_boost/drawer'], function(mod) {
+require(['theme_ilb/loader']);
+require(['theme_ilb/drawer'], function(mod) {
     mod.init();
 });
 {{/js}}

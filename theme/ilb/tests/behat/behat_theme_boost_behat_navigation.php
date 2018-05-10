@@ -34,7 +34,7 @@ use Behat\Mink\Exception\ElementNotFoundException as ElementNotFoundException;
  * @copyright  2016 Damyon Wiese
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class behat_theme_boost_behat_navigation extends behat_navigation {
+class behat_theme_ilb_behat_navigation extends behat_navigation {
 
     public function i_follow_in_the_user_menu($nodetext) {
 

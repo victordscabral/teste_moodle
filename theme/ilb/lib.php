@@ -17,7 +17,7 @@
 /**
  * Theme functions.
  *
- * @package    theme_boost
+ * @package    theme_ilb
  * @copyright  2016 Frédéric Massart - FMCorz.net
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,8 +30,8 @@ defined('MOODLE_INTERNAL') || die();
  * @param string $tree The CSS tree.
  * @param theme_config $theme The theme config object.
  */
-function theme_boost_css_tree_post_processor($tree, $theme) {
-    $prefixer = new theme_boost\autoprefixer($tree);
+function theme_ilb_css_tree_post_processor($tree, $theme) {
+    $prefixer = new theme_ilb\autoprefixer($tree);
     $prefixer->prefix();
 }
 
@@ -41,7 +41,7 @@ function theme_boost_css_tree_post_processor($tree, $theme) {
  * @param theme_config $theme The theme config object.
  * @return string
  */
-function theme_boost_get_extra_scss($theme) {
+function theme_ilb_get_extra_scss($theme) {
     return !empty($theme->settings->scss) ? $theme->settings->scss : '';
 }
 
@@ -51,7 +51,7 @@ function theme_boost_get_extra_scss($theme) {
  * @param theme_config $theme The theme config object.
  * @return string
  */
-function theme_boost_get_main_scss_content($theme) {
+function theme_ilb_get_main_scss_content($theme) {
     global $CFG;
 
     $scss = '';
@@ -60,14 +60,14 @@ function theme_boost_get_main_scss_content($theme) {
 
     $context = context_system::instance();
     if ($filename == 'default.scss') {
-        $scss .= file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/default.scss');
+        $scss .= file_get_contents($CFG->dirroot . '/theme/ilb/scss/preset/default.scss');
     } else if ($filename == 'plain.scss') {
-        $scss .= file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/plain.scss');
-    } else if ($filename && ($presetfile = $fs->get_file($context->id, 'theme_boost', 'preset', 0, '/', $filename))) {
+        $scss .= file_get_contents($CFG->dirroot . '/theme/ilb/scss/preset/plain.scss');
+    } else if ($filename && ($presetfile = $fs->get_file($context->id, 'theme_ilb', 'preset', 0, '/', $filename))) {
         $scss .= $presetfile->get_content();
     } else {
         // Safety fallback - maybe new installs etc.
-        $scss .= file_get_contents($CFG->dirroot . '/theme/boost/scss/preset/default.scss');
+        $scss .= file_get_contents($CFG->dirroot . '/theme/ilb/scss/preset/default.scss');
     }
 
     return $scss;
@@ -79,7 +79,7 @@ function theme_boost_get_main_scss_content($theme) {
  * @param theme_config $theme The theme config object.
  * @return array
  */
-function theme_boost_get_pre_scss($theme) {
+function theme_ilb_get_pre_scss($theme) {
     global $CFG;
 
     $scss = '';

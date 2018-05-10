@@ -60,6 +60,9 @@ function theme_reset_all_caches() {
         $cache->purge();
     }
 
+    // Purge compiled post processed css.
+    cache::make('core', 'postprocessedcss')->purge();
+
     if ($PAGE) {
         $PAGE->reload_theme();
     }
@@ -499,10 +502,15 @@ class theme_config {
             throw new coding_exception('Default theme '.theme_config::DEFAULT_THEME.' not available or broken!');
 
         } else if ($config = theme_config::find_theme_config($CFG->theme, $settings)) {
+            debugging('This page should be using theme ' . $themename .
+                    ' which cannot be initialised. Falling back to the site theme ' . $CFG->theme, DEBUG_NORMAL);
             return new theme_config($config);
 
         } else {
             // bad luck, the requested theme has some problems - admin see details in theme config
+            debugging('This page should be using theme ' . $themename .
+                    ' which cannot be initialised. Nor can the site theme ' . $CFG->theme .
+                    '. Falling back to ' . theme_config::DEFAULT_THEME, DEBUG_NORMAL);
             return new theme_config(theme_config::find_theme_config(theme_config::DEFAULT_THEME, $settings));
         }
     }
@@ -895,6 +903,44 @@ class theme_config {
         $csscontent = core_minify::css($csscontent);
 
         return $csscontent;
+    }
+    /**
+     * Set post processed CSS content cache.
+     *
+     * @param string $csscontent The post processed CSS content.
+     * @return bool True if the content was successfully cached.
+     */
+    public function set_css_content_cache($csscontent) {
+
+        $cache = cache::make('core', 'postprocessedcss');
+        $key = $this->get_css_cache_key();
+
+        return $cache->set($key, $csscontent);
+    }
+
+    /**
+     * Return cached post processed CSS content.
+     *
+     * @return bool|string The cached css content or false if not found.
+     */
+    public function get_css_cached_content() {
+
+        $key = $this->get_css_cache_key();
+        $cache = cache::make('core', 'postprocessedcss');
+
+        return $cache->get($key);
+    }
+
+    /**
+     * Generate the css content cache key.
+     *
+     * @return string The post processed css cache key.
+     */
+    public function get_css_cache_key() {
+        $nosvg = (!$this->use_svg_icons()) ? 'nosvg_' : '';
+        $rtlmode = ($this->rtlmode == true) ? 'rtl' : 'ltr';
+
+        return $nosvg . $this->name . '_' . $rtlmode;
     }
 
     /**
@@ -1778,7 +1824,8 @@ class theme_config {
      *
      * @param string $image name of image, may contain relative path
      * @param string $component
-     * @param bool $svg If set to true SVG images will also be looked for.
+     * @param bool $svg|null Should SVG images also be looked for? If null, resorts to $CFG->svgicons if that is set; falls back to
+     * auto-detection of browser support otherwise
      * @return string full file path
      */
     public function resolve_image_location($image, $component, $svg = false) {

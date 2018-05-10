@@ -35,7 +35,7 @@ use Behat\Gherkin\Node\TableNode as TableNode,
  * @copyright 2016 Damyon Wiese
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class behat_theme_boost_behat_admin extends behat_admin {
+class behat_theme_ilb_behat_admin extends behat_admin {
 
     public function i_set_the_following_administration_settings_values(TableNode $table) {
 

@@ -192,15 +192,15 @@ class mod_quiz_external_testcase extends externallib_advanced_testcase {
         // Create what we expect to be returned when querying the two courses.
         // First for the student user.
         $allusersfields = array('id', 'coursemodule', 'course', 'name', 'intro', 'introformat', 'introfiles', 'timeopen',
-                                'timeclose', 'grademethod', 'section', 'visible', 'groupmode', 'groupingid');
-        $userswithaccessfields = array('timelimit', 'attempts', 'attemptonlast', 'grademethod', 'decimalpoints',
-                                        'questiondecimalpoints', 'reviewattempt', 'reviewcorrectness', 'reviewmarks',
+                                'timeclose', 'grademethod', 'section', 'visible', 'groupmode', 'groupingid',
+                                'attempts', 'timelimit', 'grademethod', 'decimalpoints', 'questiondecimalpoints', 'sumgrades',
+                                'grade', 'preferredbehaviour', 'hasfeedback');
+        $userswithaccessfields = array('attemptonlast', 'reviewattempt', 'reviewcorrectness', 'reviewmarks',
                                         'reviewspecificfeedback', 'reviewgeneralfeedback', 'reviewrightanswer',
-                                        'reviewoverallfeedback', 'questionsperpage', 'navmethod', 'sumgrades', 'grade',
+                                        'reviewoverallfeedback', 'questionsperpage', 'navmethod',
                                         'browsersecurity', 'delay1', 'delay2', 'showuserpicture', 'showblocks',
                                         'completionattemptsexhausted', 'completionpass', 'autosaveperiod', 'hasquestions',
-                                        'hasfeedback', 'overduehandling', 'graceperiod', 'preferredbehaviour', 'canredoquestions',
-                                        'allowofflineattempts');
+                                        'overduehandling', 'graceperiod', 'canredoquestions', 'allowofflineattempts');
         $managerfields = array('shuffleanswers', 'timecreated', 'timemodified', 'password', 'subnet');
 
         // Add expected coursemodule and other data.
@@ -855,6 +855,9 @@ class mod_quiz_external_testcase extends externallib_advanced_testcase {
         // Create a new quiz with one attempt started.
         list($quiz, $context, $quizobj, $attempt, $attemptobj) = $this->create_quiz_with_questions(true);
 
+        // Set correctness mask so questions state can be fetched only after finishing the attempt.
+        $DB->set_field('quiz', 'reviewcorrectness', mod_quiz_display_options::IMMEDIATELY_AFTER, array('id' => $quiz->id));
+
         $quizobj = $attemptobj->get_quizobj();
         $quizobj->preload_questions();
         $quizobj->load_questions();
@@ -873,7 +876,7 @@ class mod_quiz_external_testcase extends externallib_advanced_testcase {
         $this->assertEquals(1, $result['questions'][0]['slot']);
         $this->assertEquals(1, $result['questions'][0]['number']);
         $this->assertEquals('numerical', $result['questions'][0]['type']);
-        $this->assertEquals('todo', $result['questions'][0]['state']);
+        $this->assertArrayNotHasKey('state', $result['questions'][0]);  // We don't receive the state yet.
         $this->assertEquals(get_string('notyetanswered', 'question'), $result['questions'][0]['status']);
         $this->assertFalse($result['questions'][0]['flagged']);
         $this->assertEquals(0, $result['questions'][0]['page']);
@@ -894,7 +897,7 @@ class mod_quiz_external_testcase extends externallib_advanced_testcase {
         $this->assertEquals(2, $result['questions'][0]['slot']);
         $this->assertEquals(2, $result['questions'][0]['number']);
         $this->assertEquals('numerical', $result['questions'][0]['type']);
-        $this->assertEquals('todo', $result['questions'][0]['state']);
+        $this->assertArrayNotHasKey('state', $result['questions'][0]);  // We don't receive the state yet.
         $this->assertEquals(get_string('notyetanswered', 'question'), $result['questions'][0]['status']);
         $this->assertFalse($result['questions'][0]['flagged']);
         $this->assertEquals(1, $result['questions'][0]['page']);
@@ -904,6 +907,11 @@ class mod_quiz_external_testcase extends externallib_advanced_testcase {
 
         // Finish previous attempt.
         $attemptobj->process_finish(time(), false);
+
+        // Now we should receive the question state.
+        $result = mod_quiz_external::get_attempt_review($attempt->id, 1);
+        $result = external_api::clean_returnvalue(mod_quiz_external::get_attempt_review_returns(), $result);
+        $this->assertEquals('gaveup', $result['questions'][0]['state']);
 
         // Change setting and expect two pages.
         $quiz->questionsperpage = 4;
