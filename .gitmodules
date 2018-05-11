@@ -70,6 +70,3 @@
 [submodule "blocks/configurable_reports"]
 	path = blocks/configurable_reports
 	url = https://github.com/jleyva/moodle-block_configurablereports.git
-[submodule "blocks/sms"]
-	path = blocks/sms
-	url = https://github.com/3ilogiclms/moodle-block_sms.git
