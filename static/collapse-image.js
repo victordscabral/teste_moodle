@@ -8,11 +8,11 @@ $(document).ready(function(){
 
 	    });
 
-		if ($("#img_click").attr("src") == "../../images/bg_saiba_mais_header2_curso.png") {
-	    	$('#img_click').attr('src','../../images/bg_saiba_mais_fechado2.png');
+		if ($("#img_click").attr("src") == "../../theme/ilb/pix/smarts/bg_saiba_mais_header2_curso.png") {
+	    	$('#img_click').attr('src','../../theme/ilb/pix/smarts/bg_saiba_mais_fechado2.png');
 	    }
 	    else{
-	    	$('#img_click').attr('src','../../images/bg_saiba_mais_header2_curso.png');
+	    	$('#img_click').attr('src','../../theme/ilb/pix/smarts/bg_saiba_mais_header2_curso.png');
 	    	$(".caixa-collapse").css("margin-top", "0");
 
 	    }
