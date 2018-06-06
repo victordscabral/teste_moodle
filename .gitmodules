@@ -69,7 +69,4 @@
 	url = https://github.com/jleyva/moodle-block_configurablereports.git
 [submodule "theme/escola_modelo"]
 	path = theme/escola_modelo
-	url = https://github.com/interlegis/moodle_theme-escola-modelo.git
-[submodule "theme/escolamodelo"]
-	path = theme/escolamodelo
-	url = https://github.com/interlegis/moodle-theme_escolamodelo.git
+	url = https://github.com/interlegis/moodle-theme_escola_modelo
