@@ -1,0 +1,30 @@
+[2018-05-29 11:43:17.888] [exthost1] [info] extension host started
+[2018-05-29 11:43:17.907] [exthost1] [info] ExtensionService#_doActivateExtension vscode.emmet {"startup":true,"activationEvent":"*"}
+[2018-05-29 11:43:17.907] [exthost1] [info] ExtensionService#loadCommonJSModule /usr/share/code/resources/app/extensions/emmet/out/extension
+[2018-05-29 11:43:17.964] [exthost1] [info] ExtensionService#_doActivateExtension vscode.git {"startup":true,"activationEvent":"*"}
+[2018-05-29 11:43:17.964] [exthost1] [info] ExtensionService#loadCommonJSModule /usr/share/code/resources/app/extensions/git/out/main
+[2018-05-29 11:43:18.105] [exthost1] [info] ExtensionService#_doActivateExtension vscode.merge-conflict {"startup":true,"activationEvent":"*"}
+[2018-05-29 11:43:18.105] [exthost1] [info] ExtensionService#loadCommonJSModule /usr/share/code/resources/app/extensions/merge-conflict/out/extension
+[2018-05-29 11:43:18.114] [exthost1] [info] ExtensionService#_doActivateExtension Equinusocio.vsc-material-theme {"startup":true,"activationEvent":"*"}
+[2018-05-29 11:43:18.114] [exthost1] [info] ExtensionService#loadCommonJSModule /home/brunocordeiro/.vscode/extensions/Equinusocio.vsc-material-theme-2.1.0/extensions/material.theme.config.js
+[2018-05-29 11:43:18.122] [exthost1] [info] eager extensions activated
+[2018-05-29 11:43:38.211] [exthost1] [info] extension host started
+[2018-05-29 11:43:38.241] [exthost1] [info] ExtensionService#_doActivateExtension vscode.emmet {"startup":true,"activationEvent":"*"}
+[2018-05-29 11:43:38.241] [exthost1] [info] ExtensionService#loadCommonJSModule /usr/share/code/resources/app/extensions/emmet/out/extension
+[2018-05-29 11:43:38.297] [exthost1] [info] ExtensionService#_doActivateExtension vscode.git {"startup":true,"activationEvent":"*"}
+[2018-05-29 11:43:38.297] [exthost1] [info] ExtensionService#loadCommonJSModule /usr/share/code/resources/app/extensions/git/out/main
+[2018-05-29 11:43:38.441] [exthost1] [info] ExtensionService#_doActivateExtension vscode.merge-conflict {"startup":true,"activationEvent":"*"}
+[2018-05-29 11:43:38.441] [exthost1] [info] ExtensionService#loadCommonJSModule /usr/share/code/resources/app/extensions/merge-conflict/out/extension
+[2018-05-29 11:43:38.451] [exthost1] [info] ExtensionService#_doActivateExtension Equinusocio.vsc-material-theme {"startup":true,"activationEvent":"*"}
+[2018-05-29 11:43:38.451] [exthost1] [info] ExtensionService#loadCommonJSModule /home/brunocordeiro/.vscode/extensions/Equinusocio.vsc-material-theme-2.1.0/extensions/material.theme.config.js
+[2018-05-29 11:43:38.475] [exthost1] [info] ExtensionService#_doActivateExtension vscode.npm {"startup":true,"activationEvent":"workspaceContains:package.json"}
+[2018-05-29 11:43:38.475] [exthost1] [info] ExtensionService#loadCommonJSModule /usr/share/code/resources/app/extensions/npm/out/main
+[2018-05-29 11:43:38.506] [exthost1] [info] eager extensions activated
+[2018-05-29 11:44:01.262] [exthost1] [info] ExtensionService#_doActivateExtension vscode.php-language-features {"startup":false,"activationEvent":"onLanguage:php"}
+[2018-05-29 11:44:01.262] [exthost1] [info] ExtensionService#loadCommonJSModule /usr/share/code/resources/app/extensions/php-language-features/out/phpMain
+[2018-05-29 12:50:07.089] [exthost1] [info] ExtensionService#_doActivateExtension vscode.configuration-editing {"startup":false,"activationEvent":"onLanguage:jsonc"}
+[2018-05-29 12:50:07.089] [exthost1] [info] ExtensionService#loadCommonJSModule /usr/share/code/resources/app/extensions/configuration-editing/out/extension
+[2018-05-29 12:50:07.099] [exthost1] [info] ExtensionService#_doActivateExtension vscode.json-language-features {"startup":false,"activationEvent":"onLanguage:jsonc"}
+[2018-05-29 12:50:07.099] [exthost1] [info] ExtensionService#loadCommonJSModule /usr/share/code/resources/app/extensions/json-language-features/client/out/jsonMain
+[2018-05-29 13:32:08.942] [exthost1] [info] ExtensionService#_doActivateExtension vscode.typescript-language-features {"startup":false,"activationEvent":"onLanguage:javascript"}
+[2018-05-29 13:32:08.942] [exthost1] [info] ExtensionService#loadCommonJSModule /usr/share/code/resources/app/extensions/typescript-language-features/out/extension

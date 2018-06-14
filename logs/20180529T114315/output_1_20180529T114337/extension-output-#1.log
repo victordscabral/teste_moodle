@@ -1,0 +1,136 @@
+Looking for git in: git
+Using git 2.17.0 from git
+> git rev-parse --show-toplevel
+> git config --get commit.template
+Open repository: /var/www/html/moodle
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse MOODLE_34_STABLE
+> git rev-parse --symbolic-full-name MOODLE_34_STABLE@{u}
+> git rev-list --left-right MOODLE_34_STABLE...refs/remotes/origin/MOODLE_34_STABLE
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git rev-parse --show-toplevel
+> git config --get commit.template
+Open repository: /var/www/html/moodle/user/profile/field/cpf
+> git status -z -u
+> git rev-parse --show-toplevel
+> git symbolic-ref --short HEAD
+> git config --get commit.template
+Open repository: /var/www/html/moodle/theme/ilb
+> git status -z -u
+> git rev-parse --show-toplevel
+> git symbolic-ref --short HEAD
+fatal: ref HEAD is not a symbolic ref
+> git rev-parse HEAD
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git rev-parse MOODLE_34_STABLE
+> git config --get commit.template
+Open repository: /var/www/html/moodle/enrol/ilbead
+> git status -z -u
+> git rev-parse --show-toplevel
+> git symbolic-ref --short HEAD
+> git config --get commit.template
+Open repository: /var/www/html/moodle/enrol/ilbeadtutorado
+> git status -z -u
+> git rev-parse --show-toplevel
+> git rev-parse --symbolic-full-name MOODLE_34_STABLE@{u}
+> git symbolic-ref --short HEAD
+fatal: no upstream configured for branch 'MOODLE_34_STABLE'
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git config --get commit.template
+Open repository: /var/www/html/moodle/blocks/completion_progress
+> git status -z -u
+> git rev-parse --show-toplevel
+fatal: ref HEAD is not a symbolic ref
+> git rev-parse HEAD
+> git symbolic-ref --short HEAD
+> git config --get commit.template
+Open repository: /var/www/html/moodle/blocks/sae
+> git status -z -u
+> git rev-parse --show-toplevel
+fatal: ref HEAD is not a symbolic ref
+> git rev-parse HEAD
+> git symbolic-ref --short HEAD
+> git config --get commit.template
+Open repository: /var/www/html/moodle/mod/attendance
+> git status -z -u
+> git rev-parse --show-toplevel
+fatal: ref HEAD is not a symbolic ref
+> git rev-parse HEAD
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git symbolic-ref --short HEAD
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git config --get commit.template
+Open repository: /var/www/html/moodle/mod/certificate
+> git status -z -u
+> git rev-parse --show-toplevel
+> git rev-parse MOODLE_34_STABLE
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git symbolic-ref --short HEAD
+> git rev-parse --symbolic-full-name MOODLE_34_STABLE@{u}
+> git config --get commit.template
+Open repository: /var/www/html/moodle/mod/hotpot
+> git status -z -u
+> git rev-parse --show-toplevel
+fatal: ref HEAD is not a symbolic ref
+> git rev-parse HEAD
+> git symbolic-ref --short HEAD
+> git config --get commit.template
+Open repository: /var/www/html/moodle/mod/game
+> git status -z -u
+> git rev-list --left-right MOODLE_34_STABLE...refs/remotes/origin/MOODLE_34_STABLE
+fatal: ref HEAD is not a symbolic ref
+> git rev-parse HEAD
+> git symbolic-ref --short HEAD
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+fatal: ref HEAD is not a symbolic ref
+> git rev-parse HEAD
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+fatal: ref HEAD is not a symbolic ref
+> git rev-parse HEAD
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git check-ignore -z --stdin
+> git status -z -u
+> git symbolic-ref --short HEAD
+> git rev-parse MOODLE_34_STABLE
+> git rev-parse --symbolic-full-name MOODLE_34_STABLE@{u}
+> git rev-list --left-right MOODLE_34_STABLE...refs/remotes/origin/MOODLE_34_STABLE
+> git for-each-ref --format %(refname) %(objectname) --sort -committerdate
+> git remote --verbose
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git show :course/ajax/management.php
+> git check-ignore -z --stdin
+> git show :course/renderer.php
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git show :templates/head.mustache
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git show :templates/head2.mustache
+> git check-ignore -z --stdin
+> git check-ignore -z --stdin
+> git show :js/jquery.js
+> git show :templates/head.mustache

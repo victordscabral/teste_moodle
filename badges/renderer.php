@@ -789,13 +789,12 @@ class core_badges_renderer extends plugin_renderer_base {
         return $overalldescr . $condition . html_writer::alist($items, array(), 'ul');;
     }
 
-    // Prints criteria actions for badge editing.
+ // Prints criteria actions for badge editing.
     public function print_criteria_actions(badge $badge) {
         $output = '';
         if (!$badge->is_active() && !$badge->is_locked()) {
             $accepted = $badge->get_accepted_criteria();
             $potential = array_diff($accepted, array_keys($badge->criteria));
-
             if (!empty($potential)) {
                 foreach ($potential as $p) {
                     if ($p != 0) {
@@ -815,7 +814,6 @@ class core_badges_renderer extends plugin_renderer_base {
                 $output .= $this->output->box(get_string('nothingtoadd', 'badges'), 'clearfix');
             }
         }
-
         return $output;
     }
 

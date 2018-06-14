@@ -223,13 +223,10 @@
         $PAGE->requires->js_init_call('M.core_completion.init');
     }
 
-    // We are currently keeping the button here from 1.x to help new teachers figure out
-    // what to do, even though the link also appears in the course admin block.  It also
-    // means you can back out of a situation where you removed the admin block. :)
-    if ($PAGE->user_allowed_editing()) {
+
         $buttons = $OUTPUT->edit_button($PAGE->url);
         $PAGE->set_button($buttons);
-    }
+  
 
     // If viewing a section, make the title more specific
     if ($section and $section > 0 and course_format_uses_sections($course->format)) {
