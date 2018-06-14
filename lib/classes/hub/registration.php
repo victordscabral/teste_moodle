@@ -537,7 +537,11 @@ class registration {
      * @param string|moodle_url $url
      */
     public static function registration_reminder($url) {
-        if (defined('BEHAT_SITE_RUNNING') && BEHAT_SITE_RUNNING) {
+	if(defined('ESCOLA_MODELO')) {
+	    return;  
+	}   
+	   
+	if (defined('BEHAT_SITE_RUNNING') && BEHAT_SITE_RUNNING) {
             // No redirection during behat runs.
             return;
         }
