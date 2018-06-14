@@ -40,9 +40,6 @@
 [submodule "blocks/get_certificate"]
 	path = blocks/get_certificate
 	url = https://github.com/interlegis/moodle_get_certificate.git
-[submodule "blocks/enrolmenttimer"]
-	path = blocks/enrolmenttimer
-	url = https://github.com/learningworks/moodle-block_enrolmenttimer.git
 [submodule "blocks/enrol_duration"]
 	path = blocks/enrol_duration
 	url = https://github.com/nrobbins/moodle_block_enrol_duration.git
