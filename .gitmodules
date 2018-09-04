@@ -67,3 +67,6 @@
 [submodule "theme/escola_modelo"]
 	path = theme/escola_modelo
 	url = https://github.com/interlegis/moodle-theme_escola_modelo
+[submodule "blocks/article"]
+	path = blocks/article
+	url = https://github.com/interlegis/moodle_block-article.git
