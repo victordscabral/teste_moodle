@@ -1,9 +1,6 @@
 [submodule "user/profile/field/cpf"]
 	path = user/profile/field/cpf
 	url = https://github.com/interlegis/moodle_profilefield_cpf.git
-[submodule "theme/ilb"]
-	path = theme/ilb
-	url = https://github.com/interlegis/moodle_theme_ilb.git
 [submodule "enrol/ilbead"]
 	path = enrol/ilbead
 	url = https://github.com/interlegis/moodle_enrol_ilbead.git
