@@ -76,3 +76,9 @@
 [submodule "blocks/escola_modelo"]
 	path = blocks/escola_modelo
 	url = https://github.com/interlegis/moodle-block_escola_modelo.git
+[submodule "blocks/fale_conosco"]
+	path = blocks/fale_conosco
+	url = https://github.com/interlegis/moodle-block_fale_conosco.git
+[submodule "local/ws_evl"]
+	path = local/ws_evl
+	url = https://github.com/interlegis/moodle-local_ws_evl.git
