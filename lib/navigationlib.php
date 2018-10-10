@@ -687,6 +687,15 @@ class navigation_node implements renderable {
     }
 
     /**
+     * Used to easily determine if this link in the breadcrumbs is hidden.
+     *
+     * @return boolean
+     */
+    public function is_hidden() {
+        return $this->hidden;
+    }
+
+    /**
      * Gets the CSS class to add to this node to describe its type
      *
      * @return string
@@ -2724,7 +2733,12 @@ class global_navigation extends navigation_node {
         }
         if ($navoptions->grades) {
             $url = new moodle_url('/grade/report/index.php', array('id'=>$course->id));
-            $gradenode = $coursenode->add(get_string('grades'), $url, self::TYPE_SETTING, null, 'grades', new pix_icon('i/grades', ''));
+            $gradenode = $coursenode->add(get_string('grades'), $url, self::TYPE_SETTING, null,
+                'grades', new pix_icon('i/grades', ''));
+            // If the page type matches the grade part, then make the nav drawer grade node (incl. all sub pages) active.
+            if ($this->page->context->contextlevel < CONTEXT_MODULE && strpos($this->page->pagetype, 'grade-') === 0) {
+                $gradenode->make_active();
+            }
         }
 
         return true;
@@ -3269,6 +3283,7 @@ class global_navigation_for_ajax extends global_navigation {
                 foreach ($categories as $category){
                     $coursesubcategories = array_merge($coursesubcategories, explode('/', trim($category->path, "/")));
                 }
+                $categories->close();
                 $coursesubcategories = array_unique($coursesubcategories);
 
                 // Only add a subcategory if it is part of the path to user's course and
@@ -3994,6 +4009,7 @@ class settings_navigation extends navigation_node {
         if ($context->contextlevel == CONTEXT_BLOCK) {
             $this->load_block_settings();
             $context = $context->get_parent_context();
+            $this->context = $context;
         }
         switch ($context->contextlevel) {
             case CONTEXT_SYSTEM:

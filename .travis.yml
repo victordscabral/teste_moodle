@@ -56,7 +56,7 @@ matrix:
     include:
           # Run grunt/npm install on highest version ('node' is an alias for the latest node.js version.)
         - php: 7.2
-          env: DB=none     TASK=GRUNT   NVM_VERSION='8.9'
+          env: DB=none     TASK=GRUNT   NVM_VERSION='lts/carbon'
 
     exclude:
         # MySQL - it's just too slow.
@@ -263,7 +263,9 @@ script:
         grunt ;
         # Add all files to the git index and then run diff --cached to see all changes.
         # This ensures that we get the status of all files, including new files.
+        # We ignore npm-shrinkwrap.json to make the tasks immune to npm changes.
         git add . ;
+        git reset -- npm-shrinkwrap.json ;
         git diff --cached --exit-code ;
       fi
 
