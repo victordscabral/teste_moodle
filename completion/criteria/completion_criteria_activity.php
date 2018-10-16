@@ -217,6 +217,7 @@ class completion_criteria_activity extends completion_criteria {
             INNER JOIN
                 {course} c
              ON cr.course = c.id
+                AND c.category in (175,193)
             INNER JOIN
                 {context} con
              ON con.instanceid = c.id
