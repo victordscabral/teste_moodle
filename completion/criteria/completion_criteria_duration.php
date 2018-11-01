@@ -228,7 +228,6 @@ class completion_criteria_duration extends completion_criteria {
             INNER JOIN
                 {course} c
              ON c.id = e.courseid
-             AND c.category in (175,193)
             INNER JOIN
                 {course_completion_criteria} cr
              ON c.id = cr.course
