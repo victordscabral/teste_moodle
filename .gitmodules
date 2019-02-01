@@ -82,6 +82,6 @@
 [submodule "local/ws_evl"]
 	path = local/ws_evl
 	url = https://github.com/interlegis/moodle-local_ws_evl.git
-[submodule "blocks/evl_sync"]
-	path = blocks/evl_sync
-	url = https://github.com/interlegis/moodle-block_evl_sync
+[submodule "enrol/evl"]
+	path = enrol/evl
+	url = https://github.com/interlegis/moodle-enrol_evl.git
