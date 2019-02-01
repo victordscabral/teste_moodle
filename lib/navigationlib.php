@@ -2709,7 +2709,7 @@ class global_navigation extends navigation_node {
         if ($navoptions->badges) {
             $url = new moodle_url('/badges/view.php', array('type' => 2, 'id' => $course->id));
 
-            $coursenode->add(get_string('coursebadges', 'badges'), $url,
+            $node = $coursenode->add(get_string('coursebadges', 'badges'), $url,
                     navigation_node::TYPE_SETTING, null, 'badgesview',
                     new pix_icon('i/badge', get_string('coursebadges', 'badges')));
         }
@@ -2771,7 +2771,10 @@ class global_navigation extends navigation_node {
         // Badges.
         if ($navoptions->badges) {
             $url = new moodle_url($CFG->wwwroot . '/badges/view.php', array('type' => 1));
-            $coursenode->add(get_string('sitebadges', 'badges'), $url, navigation_node::TYPE_CUSTOM);
+            $node = $coursenode->add(get_string('sitebadges', 'badges'), $url, navigation_node::TYPE_CUSTOM);
+
+            $node->showinflatnavigation = true;
+
         }
 
         // Notes.
@@ -2802,6 +2805,14 @@ class global_navigation extends navigation_node {
             // Calendar
             $calendarurl = new moodle_url('/calendar/view.php', $params);
             $node = $coursenode->add(get_string('calendar', 'calendar'), $calendarurl, self::TYPE_CUSTOM, null, 'calendar');
+            $node->showinflatnavigation = true;
+        }
+
+        // ADD SAE
+        if ($navoptions->calendar) {
+            $saeurl = new moodle_url('/blocks/sae/view.php');
+            
+            $node = $coursenode->add(get_string('simplehtml', 'block_sae'), $saeurl, self::TYPE_CUSTOM, null, 'sae');
             $node->showinflatnavigation = true;
         }
 
