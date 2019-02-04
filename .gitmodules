@@ -64,12 +64,6 @@
 [submodule "blocks/article"]
 	path = blocks/article
 	url = https://github.com/interlegis/moodle_block-article.git
-[submodule "theme/escola_modelo"]
-	path = theme/escola_modelo
-	url = https://github.com/interlegis/moodle-theme_escola_modelo.git
-[submodule "theme/ilb"]
-	path = theme/ilb
-	url = https://github.com/interlegis/moodle_theme_ilb.git
 [submodule "blocks/escola_modelo"]
 	path = blocks/escola_modelo
 	url = https://github.com/interlegis/moodle-block_escola_modelo.git

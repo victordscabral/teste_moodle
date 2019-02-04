@@ -25,40 +25,51 @@
  */
 
 require_once('../config.php');
+require_once("lib.php");
 
-$PAGE->set_url('/login/logout.php');
-$PAGE->set_context(context_system::instance());
 
-$sesskey = optional_param('sesskey', '__notpresent__', PARAM_RAW); // we want not null default to prevent required sesskey warning
-$login   = optional_param('loginpage', 0, PARAM_BOOL);
+$emlogout = optional_param('emlogout', "0", PARAM_RAW); // indicador se deve fazer logout na Escola Modelo ou na EVL
 
-// can be overridden by auth plugins
-if ($login) {
-    $redirect = get_login_url();
+if($emlogout == "0") {
+    $urlRedirect = new moodle_url("http://localhost:3000/log_out", 
+        array('externo' => "http://localhost/escola_modelo/login/logout.php?sesskey=" . sesskey() . "&emlogout=1")
+    );        
+    redirect($urlRedirect->out(true));
 } else {
-    $redirect = $CFG->wwwroot.'/';
-}
+    $PAGE->set_url('/login/logout.php');
+    $PAGE->set_context(context_system::instance());
 
-if (!isloggedin()) {
-    // no confirmation, user has already logged out
+    $sesskey = optional_param('sesskey', '__notpresent__', PARAM_RAW); // we want not null default to prevent required sesskey warning
+    $login   = optional_param('loginpage', 0, PARAM_BOOL);
+
+    // can be overridden by auth plugins
+    if ($login) {
+        $redirect = get_login_url();
+    } else {
+        $redirect = $CFG->wwwroot.'/';
+    }
+
+    if (!isloggedin()) {
+        // no confirmation, user has already logged out
+        require_logout();
+        redirect($redirect);
+
+    } else if (!confirm_sesskey($sesskey)) {
+        $PAGE->set_title($SITE->fullname);
+        $PAGE->set_heading($SITE->fullname);
+        echo $OUTPUT->header();
+        echo $OUTPUT->confirm(get_string('logoutconfirm'), new moodle_url($PAGE->url, array('sesskey'=>sesskey())), $CFG->wwwroot.'/');
+        echo $OUTPUT->footer();
+        die;
+    }
+
+    $authsequence = get_enabled_auth_plugins(); // auths, in sequence
+    foreach($authsequence as $authname) {
+        $authplugin = get_auth_plugin($authname);
+        $authplugin->logoutpage_hook();
+    }
+
     require_logout();
+
     redirect($redirect);
-
-} else if (!confirm_sesskey($sesskey)) {
-    $PAGE->set_title($SITE->fullname);
-    $PAGE->set_heading($SITE->fullname);
-    echo $OUTPUT->header();
-    echo $OUTPUT->confirm(get_string('logoutconfirm'), new moodle_url($PAGE->url, array('sesskey'=>sesskey())), $CFG->wwwroot.'/');
-    echo $OUTPUT->footer();
-    die;
 }
-
-$authsequence = get_enabled_auth_plugins(); // auths, in sequence
-foreach($authsequence as $authname) {
-    $authplugin = get_auth_plugin($authname);
-    $authplugin->logoutpage_hook();
-}
-
-require_logout();
-
-redirect($redirect);

@@ -2808,13 +2808,6 @@ class global_navigation extends navigation_node {
             $node->showinflatnavigation = true;
         }
 
-        // ADD SAE
-        if ($navoptions->calendar) {
-            $saeurl = new moodle_url('/blocks/sae/view.php');
-            
-            $node = $coursenode->add(get_string('simplehtml', 'block_sae'), $saeurl, self::TYPE_CUSTOM, null, 'sae');
-            $node->showinflatnavigation = true;
-        }
 
         if (isloggedin()) {
             $usercontext = context_user::instance($USER->id);
