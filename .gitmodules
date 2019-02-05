@@ -1,12 +1,6 @@
 [submodule "user/profile/field/cpf"]
 	path = user/profile/field/cpf
 	url = https://github.com/interlegis/moodle_profilefield_cpf.git
-[submodule "enrol/ilbead"]
-	path = enrol/ilbead
-	url = https://github.com/interlegis/moodle_enrol_ilbead.git
-[submodule "enrol/ilbeadtutorado"]
-	path = enrol/ilbeadtutorado
-	url = https://github.com/interlegis/moodle_enrol_ilbeadtutorado.git
 [submodule "blocks/completion_progress"]
 	path = blocks/completion_progress
 	url = https://github.com/interlegis/moodle-block_completion_progress.git
