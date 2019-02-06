@@ -40,12 +40,6 @@
 [submodule "report/messages"]
 	path = report/messages
 	url = https://github.com/interlegis/moodle_report_messages.git
-[submodule "report/ilbsplit"]
-	path = report/ilbsplit
-	url = https://github.com/interlegis/moodle-report_ilbsplit.git
-[submodule "report/ilbenrol"]
-	path = report/ilbenrol
-	url = https://github.com/interlegis/moodle_report_ilbenrol.git
 [submodule "blocks/course_contacts"]
 	path = blocks/course_contacts
 	url = https://github.com/roelmann/moodle-block_course_contacts.git

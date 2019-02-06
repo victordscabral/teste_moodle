@@ -27,12 +27,13 @@
 require_once('../config.php');
 require_once("lib.php");
 
+global $CFG;
 
 $emlogout = optional_param('emlogout', "0", PARAM_RAW); // indicador se deve fazer logout na Escola Modelo ou na EVL
 
 if($emlogout == "0") {
-    $urlRedirect = new moodle_url("http://localhost:3000/log_out", 
-        array('externo' => "http://localhost/escola_modelo/login/logout.php?sesskey=" . sesskey() . "&emlogout=1")
+    $urlRedirect = new moodle_url( $CFG->emURLWS . "/log_out", 
+        array('externo' => $CFG->wwwroot . "/login/logout.php?sesskey=" . sesskey() . "&emlogout=1")
     );        
     redirect($urlRedirect->out(true));
 } else {
