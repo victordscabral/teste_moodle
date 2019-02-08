@@ -261,6 +261,8 @@ class api {
         $user->url = isset($userinfo['url']) ? $userinfo['url'] : '';
         $user->alternatename = isset($userinfo['alternatename']) ? $userinfo['alternatename'] : '';
         $user->secret = random_string(15);
+        $user->idnumber = isset($userinfo['idnumber']) ? $userinfo['idnumber'] : '';
+
 
         $user->password = '';
         // This user is confirmed.
