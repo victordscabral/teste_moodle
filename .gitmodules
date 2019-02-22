@@ -70,3 +70,6 @@
 [submodule "local/mass_enroll"]
 	path = local/mass_enroll
 	url = https://github.com/rogiervandongen/moodle-local_mass_enroll.git
+[submodule "blocks/accessibility"]
+	path = blocks/accessibility
+	url = https://github.com/hitteshahuja/moodle-block_accessibility.git
