@@ -2257,38 +2257,6 @@ function date_format_string($date, $format, $tz = 99) {
         $datestring = core_text::convert($datestring, $localewincharset, 'utf-8');
     }
 
-    $datestring = str_replace('Monday', 'Segunda-feira', $datestring);
-    $datestring = str_replace('Tuesday', 'Terça-feira', $datestring);
-    $datestring = str_replace('Wednesday', 'Quarta-feira', $datestring);
-    $datestring = str_replace('Thursday', 'Quinta-feira', $datestring);
-    $datestring = str_replace('Friday', 'Sexta-feira', $datestring);
-    $datestring = str_replace('Saturday', 'Sábado', $datestring);
-    $datestring = str_replace('Sunday', 'Domingo', $datestring);
-
-    $datestring = str_replace('January', 'Janeiro', $datestring);
-    $datestring = str_replace('Jan', 'Jan', $datestring);
-    $datestring = str_replace('February', 'Fevereiro', $datestring);
-    $datestring = str_replace('Feb', 'Fev', $datestring);
-    $datestring = str_replace('March', 'Março', $datestring);
-    $datestring = str_replace('Mar', 'Mar', $datestring);
-    $datestring = str_replace('April', 'Abril', $datestring);
-    $datestring = str_replace('Apr', 'Abr', $datestring);
-    $datestring = str_replace('May', 'Maio', $datestring);
-    $datestring = str_replace('June', 'Junho', $datestring);
-    $datestring = str_replace('Jun', 'Jun', $datestring);
-    $datestring = str_replace('July', 'Julho', $datestring);
-    $datestring = str_replace('Jul', 'Jul', $datestring);
-    $datestring = str_replace('August', 'Agosto', $datestring);
-    $datestring = str_replace('Aug', 'Ago', $datestring);
-    $datestring = str_replace('September', 'Setembro', $datestring);
-    $datestring = str_replace('Sep', 'Set', $datestring);
-    $datestring = str_replace('October', 'Outubro', $datestring);
-    $datestring = str_replace('Oct', 'Out', $datestring);
-    $datestring = str_replace('November', 'Novembro', $datestring);
-    $datestring = str_replace('Nov', 'Nov', $datestring);
-    $datestring = str_replace('December', 'Dezembro', $datestring);
-    $datestring = str_replace('Dec', 'Dez', $datestring);
-
 
     return $datestring;
 }
