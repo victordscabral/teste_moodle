@@ -229,6 +229,12 @@ class completion_criteria_duration extends completion_criteria {
                 {course} c
              ON c.id = e.courseid
             INNER JOIN
+                {course_category} cat
+                  ON cat.id = c.category
+                    AND (cat.path like \'/134/%\' 
+                        OR  cat.path like \'/130/%\' 
+                        OR  cat.path like \'/102/%\')
+            INNER JOIN
                 {course_completion_criteria} cr
              ON c.id = cr.course
             LEFT JOIN

@@ -202,6 +202,12 @@ class completion_criteria_grade extends completion_criteria {
                 {course} c
              ON cr.course = c.id
             INNER JOIN
+             {course_category} cat
+               ON cat.id = c.category
+                 AND (cat.path like \'/134/%\' 
+                     OR  cat.path like \'/130/%\' 
+                     OR  cat.path like \'/102/%\')
+            INNER JOIN
                 {context} con
              ON con.instanceid = c.id
             INNER JOIN
