@@ -210,44 +210,33 @@ class completion_criteria_activity extends completion_criteria {
             SELECT DISTINCT
                 c.id AS course,
                 cr.id AS criteriaid,
-                ra.userid AS userid,
+                mc.userid AS userid,
                 mc.timemodified AS timecompleted
             FROM
                 {course_completion_criteria} cr
             INNER JOIN
                 {course} c
-             ON cr.course = c.id
-             INNER JOIN
-             {course_category} cat
-               ON cat.id = c.category
-                 AND (cat.path like \'/134/%\' 
-                     OR  cat.path like \'/130/%\' 
-                     OR  cat.path like \'/102/%\')
+            ON cr.course = c.id 
             INNER JOIN
-                {context} con
-             ON con.instanceid = c.id
-            INNER JOIN
-                {role_assignments} ra
-              ON ra.contextid = con.id
+                {course_categories} cat
+                ON cat.id = c.category 
+                AND substr(cat.path,1,5) in (\'/134/\',\'/130/\',\'/102/\')
             INNER JOIN
                 {course_modules_completion} mc
-             ON mc.coursemoduleid = cr.moduleinstance
-            AND mc.userid = ra.userid
+            ON mc.coursemoduleid = cr.moduleinstance
             LEFT JOIN
                 {course_completion_crit_compl} cc
-             ON cc.criteriaid = cr.id
-            AND cc.userid = ra.userid
+            ON cc.criteriaid = cr.id
+            AND cc.userid = mc.userid
             WHERE
                 cr.criteriatype = '.COMPLETION_CRITERIA_TYPE_ACTIVITY.'
-            AND con.contextlevel = '.CONTEXT_COURSE.'
             AND c.enablecompletion = 1
             AND cc.id IS NULL
             AND (
                 mc.completionstate = '.COMPLETION_COMPLETE.'
-             OR mc.completionstate = '.COMPLETION_COMPLETE_PASS.'
-             OR mc.completionstate = '.COMPLETION_COMPLETE_FAIL.'
-                )
-        ';
+            OR mc.completionstate = '.COMPLETION_COMPLETE_PASS.'
+            OR mc.completionstate = '.COMPLETION_COMPLETE_FAIL.'
+        )        ';
 
         // Loop through completions, and mark as complete
         $rs = $DB->get_recordset_sql($sql);
