@@ -1,0 +1,75 @@
+[submodule "user/profile/field/cpf"]
+	path = user/profile/field/cpf
+	url = https://github.com/interlegis/moodle_profilefield_cpf.git
+[submodule "enrol/ilbead"]
+	path = enrol/ilbead
+	url = https://github.com/interlegis/moodle_enrol_ilbead.git
+[submodule "enrol/ilbeadtutorado"]
+	path = enrol/ilbeadtutorado
+	url = https://github.com/interlegis/moodle_enrol_ilbeadtutorado.git
+[submodule "blocks/completion_progress"]
+	path = blocks/completion_progress
+	url = https://github.com/interlegis/moodle-block_completion_progress.git
+[submodule "mod/attendance"]
+	path = mod/attendance
+	url = https://github.com/danmarsden/moodle-mod_attendance.git
+[submodule "mod/certificate"]
+	path = mod/certificate
+	url = https://github.com/interlegis/moodle_certificates.git
+[submodule "mod/hotpot"]
+	path = mod/hotpot
+	url = https://github.com/gbateson/moodle-mod_hotpot.git
+[submodule "mod/game"]
+	path = mod/game
+	url = https://github.com/interlegis/moodle-mod_game.git
+[submodule "mod/journal"]
+	path = mod/journal
+	url = https://github.com/elearningsoftware/moodle-mod_journal.git
+[submodule "mod/questionnaire"]
+	path = mod/questionnaire
+	url = https://github.com/PoetOS/moodle-mod_questionnaire.git
+[submodule "mod/quiz/accessrule/reattemptchecker"]
+	path = mod/quiz/accessrule/reattemptchecker
+	url = https://github.com/learningstacks/moodle-quizaccess_reattemptchecker.git
+[submodule "blocks/get_certificate"]
+	path = blocks/get_certificate
+	url = https://github.com/interlegis/moodle_get_certificate.git
+[submodule "blocks/enrol_duration"]
+	path = blocks/enrol_duration
+	url = https://github.com/nrobbins/moodle_block_enrol_duration.git
+[submodule "blocks/download_certificates"]
+	path = blocks/download_certificates
+	url = https://github.com/manieer/moodle-block_download_certificates.git
+[submodule "blocks/verify_certificate"]
+	path = blocks/verify_certificate
+	url = https://github.com/interlegis/moodle_block_verify_certificate.git
+[submodule "report/messages"]
+	path = report/messages
+	url = https://github.com/interlegis/moodle_report_messages.git
+[submodule "report/ilbsplit"]
+	path = report/ilbsplit
+	url = https://github.com/interlegis/moodle-report_ilbsplit.git
+[submodule "report/ilbenrol"]
+	path = report/ilbenrol
+	url = https://github.com/interlegis/moodle_report_ilbenrol.git
+[submodule "blocks/course_contacts"]
+	path = blocks/course_contacts
+	url = https://github.com/roelmann/moodle-block_course_contacts.git
+[submodule "blocks/userexpire"]
+	path = blocks/userexpire
+	url = https://github.com/coderader/moodle-block_userexpire.git
+[submodule "blocks/configurable_reports"]
+	path = blocks/configurable_reports
+	url = https://github.com/jleyva/moodle-block_configurablereports.git
+[submodule "theme/escola_modelo"]
+	path = theme/escola_modelo
+	url = https://github.com/interlegis/moodle_theme-escola-modelo.git
+[submodule "theme/ilb"]
+	path = theme/ilb
+	url = https://github.com/interlegis/moodle_theme_ilb.git
+[submodule "local/mass_enroll"]
+	path = local/mass_enroll
+	url = https://github.com/rogiervandongen/moodle-local_mass_enroll.git
+[submodule "blocks/accessibility"]
+	path = blocks/accessibility
+	url = https://github.com/hitteshahuja/moodle-block_accessibility.git
