@@ -459,7 +459,7 @@ abstract class user_selector_base {
      *      this uses ? style placeholders.
      */
     protected function search_sql($search, $u) {
-        return users_search_sql($search, $u, $this->searchanywhere, $this->extrafields,
+        return users_search_sql($search, $u, $this->searchanywhere, array('username','email'), //$this->extrafields,
                 $this->exclude, $this->validatinguserids);
     }
 

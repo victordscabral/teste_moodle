@@ -385,8 +385,9 @@ class course_enrolment_manager {
             //}
             $conditions[] = 'u.username';
             $conditions[] = 'u.email';
-            //$conditions[] = $DB->sql_fullname('u.firstname', 'u.lastname');
-            if ($searchanywhere && false) {
+            $conditions[] = $DB->sql_fullname('u.firstname', 'u.lastname');
+            
+            if ($searchanywhere) {
                 $searchparam = '%' . $search . '%';
             } else {
                 $searchparam = $search . '%';
