@@ -37,9 +37,6 @@
 [submodule "blocks/enrol_duration"]
 	path = blocks/enrol_duration
 	url = https://github.com/nrobbins/moodle_block_enrol_duration.git
-[submodule "blocks/download_certificates"]
-	path = blocks/download_certificates
-	url = https://github.com/manieer/moodle-block_download_certificates.git
 [submodule "blocks/verify_certificate"]
 	path = blocks/verify_certificate
 	url = https://github.com/interlegis/moodle_block_verify_certificate.git
@@ -70,3 +67,6 @@
 [submodule "blocks/accessibility"]
 	path = blocks/accessibility
 	url = https://github.com/hitteshahuja/moodle-block_accessibility.git
+[submodule "blocks/download_certificates"]
+	path = blocks/download_certificates
+	url = https://github.com/manieer/moodle-block_download_certificates.git
