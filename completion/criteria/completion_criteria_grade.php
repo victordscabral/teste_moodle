@@ -193,35 +193,31 @@ class completion_criteria_grade extends completion_criteria {
             SELECT DISTINCT
                 c.id AS course,
                 cr.id AS criteriaid,
-                ra.userid AS userid,
+                gg.userid AS userid,
                 gg.finalgrade AS gradefinal,
                 gg.timemodified AS timecompleted
             FROM
                 {course_completion_criteria} cr
             INNER JOIN
                 {course} c
-             ON cr.course = c.id
+                ON cr.course = c.id 
             INNER JOIN
-                {context} con
-             ON con.instanceid = c.id
-            INNER JOIN
-                {role_assignments} ra
-              ON ra.contextid = con.id
+                {course_categories} cat
+                ON cat.id = c.category 
+                AND substr(cat.path,1,5) in (\'/134/\',\'/130/\',\'/102/\')
             INNER JOIN
                 {grade_items} gi
-             ON gi.courseid = c.id
+            ON gi.courseid = c.id
             AND gi.itemtype = \'course\'
             INNER JOIN
                 {grade_grades} gg
-             ON gg.itemid = gi.id
-            AND gg.userid = ra.userid
+            ON gg.itemid = gi.id
             LEFT JOIN
                 {course_completion_crit_compl} cc
-             ON cc.criteriaid = cr.id
-            AND cc.userid = ra.userid
+            ON cc.criteriaid = cr.id
+            AND cc.userid = gg.userid
             WHERE
                 cr.criteriatype = '.COMPLETION_CRITERIA_TYPE_GRADE.'
-            AND con.contextlevel = '.CONTEXT_COURSE.'
             AND c.enablecompletion = 1
             AND cc.id IS NULL
             AND gg.finalgrade >= cr.gradepass

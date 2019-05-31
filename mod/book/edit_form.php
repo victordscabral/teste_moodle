@@ -31,8 +31,13 @@ class book_chapter_edit_form extends moodleform {
     function definition() {
         global $CFG;
 
+        $val = 1;
+
         $chapter = $this->_customdata['chapter'];
         $options = $this->_customdata['options'];
+
+        $content = $this->_customdata['content'];
+        $content2 = $this->_customdata['content2'];
 
         // Disabled subchapter option when editing first node.
         $disabledmsg = null;
@@ -84,6 +89,96 @@ class book_chapter_edit_form extends moodleform {
 
         // set the defaults
         $this->set_data($chapter);
+
+        // header da seção de criar novas abas
+        $mform->addElement('header', 'addtab', 'Adicionar abas');
+
+        $repeatarray = array();
+        $repeatarray[] = $mform->createElement('text', 'tabtitle', 'Título da aba');
+        $repeatarray[] = $mform->createElement('text', 'tabtitlecont', 'Título dentro da caixa da aba');
+        // $repeatarray[] = $mform->createElement('textarea', 'tabcont', 'Conteúdo da aba', 'rows="15" cols="50"');
+        $repeatarray[] = $mform->createElement('editor', 'tabcont', 'Conteúdo da aba');
+    
+        $repeatno = 2;
+    
+        $repeateloptions = array();
+        // $repeateloptions['tabcont']['type'] = PARAM_RAW;
+
+    
+        $mform->setType('tabtitle', PARAM_CLEANHTML);
+        $mform->setType('tabcont', PARAM_CLEANHTML);
+
+        $qtde = $this->repeat_elements($repeatarray, $repeatno,
+                    $repeateloptions, 'option_repeats', 'option_add_fields', 1, "Adicionar mais uma tab", true);
+
+        $mform->registerNoSubmitButton('addotags');
+        $otagsgrp = array();
+        $otagsgrp[] =& $mform->createElement('submit', 'addotags', 'Gerar código HTML');
+        $mform->addGroup($otagsgrp, 'otagsgrp', 'Adicionar código', array(' '), false);
+
+        $mform->addElement('textarea', 'introduction', 'Código HTML resultante', 'wrap="virtual" rows="20" cols="100"' );
+
+        $val = '<script type="text/javascript">
+                    var content='.json_encode($content).';
+            //<![CDATA[
+                jQuery(document).ready(function() {
+                    console.log(content);
+                    jQuery("#id_introduction").html(content);
+                });
+            //]]>
+            </script>';
+
+        $mform->addElement('static', null, '', $val);
+
+        $mform->setType('introduction', PARAM_RAW);
+        
+
+        //$mform->setDefault('introduction', $content);
+        //$mform->setDefault('introduction', array('text' => $content, 'format' => FORMAT_HTML));
+
+        // HEADER DA CRIACAO DE CARROUSEL
+        $mform->addElement('header', 'addtab', 'Adicionar Sanfonas');
+
+        $repeatarray2 = array();
+        $repeatarray2[] = $mform->createElement('text', 'sanfonatitle', 'Título da aba da sanfona');
+        $repeatarray2[] = $mform->createElement('editor', 'sanfonacont', 'Conteúdo da Sanfona', 'rows="15" cols="50"');
+        // $repeatarray[] = $mform->createElement('editor', 'tabcont', 'Conteúdo da aba');
+    
+        $repeatno2 = 2;
+    
+        $repeateloptions2 = array();
+        // $repeateloptions['tabcont']['type'] = PARAM_RAW;
+
+    
+        $mform->setType('sanfonatitle', PARAM_CLEANHTML);
+        $mform->setType('sanfonacont', PARAM_CLEANHTML);
+
+        $qtde2 = $this->repeat_elements($repeatarray2, $repeatno2,
+                    $repeateloptions2, 'option_repeats', 'option_add_fields', 1, "Adicionar mais uma sanfona", true);
+
+        $mform->registerNoSubmitButton('addCarrousel');
+        $otagsgrp2 = array();
+        $otagsgrp2[] =& $mform->createElement('submit', 'addCarrousel', 'Gerar código HTML');
+        $mform->addGroup($otagsgrp2, 'otagsgrp', 'Adicionar código', array(' '), false);
+
+        $mform->addElement('textarea', 'introduction2', 'Código HTML resultante', 'wrap="virtual" rows="20" cols="100"');  
+
+        $val2 = '<script type="text/javascript">
+                    var content2='.json_encode($content2).';
+            //<![CDATA[
+                jQuery(document).ready(function() {                    
+                    console.log(content2);
+                    jQuery("#id_introduction2").html(content2);
+                });
+            //]]>
+            </script>';
+
+        $mform->addElement('static', null, '', $val2);
+    }
+
+    function get_submit_value($elementname) {
+        $mform = $this->_form;
+        return $mform->getSubmitValue($elementname);
     }
 
     function definition_after_data(){

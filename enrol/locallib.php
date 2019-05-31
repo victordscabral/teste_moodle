@@ -379,11 +379,16 @@ class course_enrolment_manager {
         $tests = array("u.id <> :guestid", 'u.deleted = 0', 'u.confirmed = 1');
         $params = array('guestid' => $CFG->siteguest);
         if (!empty($search)) {
-            $conditions = get_extra_user_fields($this->get_context());
-            foreach (get_all_user_name_fields() as $field) {
-                $conditions[] = 'u.'.$field;
-            }
+            
+            // MGBF: apenas alguns campos, para otimizar tempo de resposta
+            //$conditions = get_extra_user_fields($this->get_context());
+            //foreach (get_all_user_name_fields() as $field) {
+            //    $conditions[] = 'u.'.$field;
+            //}
+            $conditions[] = 'u.username';
+            $conditions[] = 'u.email';
             $conditions[] = $DB->sql_fullname('u.firstname', 'u.lastname');
+            
             if ($searchanywhere) {
                 $searchparam = '%' . $search . '%';
             } else {
