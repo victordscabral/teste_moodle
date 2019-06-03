@@ -73,3 +73,15 @@
 [submodule "mod/hvp"]
 	path = mod/hvp
 	url = https://github.com/h5p/h5p-moodle-plugin.git
+[submodule "enrol/evl"]
+	path = enrol/evl
+	url = https://github.com/interlegis/moodle-enrol_evl.git
+[submodule "local/ws_evl"]
+	path = local/ws_evl
+	url = https://github.com/interlegis/moodle-local_ws_evl.git
+[submodule "blocks/escola_modelo"]
+	path = blocks/escola_modelo
+	url = https://github.com/interlegis/moodle-block_escola_modelo.git
+[submodule "blocks/fale_conosco"]
+	path = blocks/fale_conosco
+	url = https://github.com/interlegis/moodle-block_fale_conosco.git
