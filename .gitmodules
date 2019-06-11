@@ -85,3 +85,9 @@
 [submodule "blocks/fale_conosco"]
 	path = blocks/fale_conosco
 	url = https://github.com/interlegis/moodle-block_fale_conosco.git
+[submodule "mod/groupselect"]
+	path = mod/groupselect
+	url = https://github.com/rogerbaba/moodle-mod_groupselect.git
+[submodule "mod/customcert"]
+	path = mod/customcert
+	url = https://github.com/markn86/moodle-mod_customcert.git
