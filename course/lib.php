@@ -28,6 +28,7 @@ require_once($CFG->libdir.'/completionlib.php');
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/datalib.php');
 require_once($CFG->dirroot.'/course/format/lib.php');
+require_once($CFG->dirroot.'/blocks/escola_modelo/classes/util.php');
 
 define('COURSE_MAX_LOGS_PER_PAGE', 1000);       // Records.
 define('COURSE_MAX_RECENT_PERIOD', 172800);     // Two days, in seconds.
@@ -2581,12 +2582,19 @@ function update_course($data, $editoroptions = NULL) {
         }
     }
 
+    // Pegar status de publicidade do curso na EVL, antes da alteração
+    $oldPublicoEVL = obtemCampoCustomizadoCurso($data->id, CURSO_CUSTOMFIELD_PUBLICO);
+
     // Update custom fields if there are any of them in the form.
     $handler = core_course\customfield\course_handler::create();
     $handler->instance_form_save($data);
 
     // Update with the new data
     $DB->update_record('course', $data);
+
+    // Pegar status de publicidade do curso na EVL, após a alteração
+    $newPublicoEVL = obtemCampoCustomizadoCurso($data->id, CURSO_CUSTOMFIELD_PUBLICO);
+
     // make sure the modinfo cache is reset
     rebuild_course_cache($data->id);
 
@@ -2635,6 +2643,12 @@ function update_course($data, $editoroptions = NULL) {
     $event->set_legacy_logdata(array($course->id, 'course', 'update', 'edit.php?id=' . $course->id, $course->id));
     $event->trigger();
 
+    // Se curso passou a ser visível, deve sincronizar as matrículas
+    if(!$oldPublicoEVL && $newPublicoEVL) {
+        $syncStartTime = $DB->get_record_sql('SELECT extract(epoch from now())::int8');
+        atualizaMatriculas($syncStartTime, $data->id);    
+    }
+
     if ($oldcourse->format !== $course->format) {
         // Remove all options stored for the previous format
         // We assume that new course format migrated everything it needed watching trigger
@@ -2661,7 +2675,6 @@ function average_number_of_participants() {
             AND c.visible = 1) total';
     $params = array('siteid' => $SITE->id);
     $enrolmenttotal = $DB->count_records_sql($sql, $params);
-
 
     //count total of visible courses (minus front page)
     $coursetotal = $DB->count_records('course', array('visible' => 1));
