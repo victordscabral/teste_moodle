@@ -5,6 +5,8 @@
     require_once('../config.php');
     require_once('lib.php');
     require_once($CFG->libdir.'/completionlib.php');
+    require_once("../blocks/escola_modelo/classes/util.php");
+    include_once($CFG->dirroot . '/blocks/escola_modelo/lib/httpful.phar');
 
     $id          = optional_param('id', 0, PARAM_INT);
     $name        = optional_param('name', '', PARAM_TEXT);
@@ -57,6 +59,46 @@
 
     require_login($course);
 
+    
+    require_evl_ready($course->id);
+
+    function require_evl_ready($id) {
+        // verifica se usuário respondeu quiz no EVL
+        // chama ws, pega result
+        global $CFG, $USER;
+
+        // // Monta url para redirecionamento após matrícula
+        $urlRedirect = new moodle_url("/course/view.php?id=", array('id' => $id));
+
+        $obj = new StdClass();
+        $obj->school = evlSiglaEscola();
+        $obj->school_course = $id;
+        $obj->key = evlAPIKey();
+        $obj->user = $USER->username;
+        $obj->redirect = $urlRedirect->out(false); // false evita codificar '&' na url de redirecionamento
+
+        $json = json_encode($obj);
+   
+        $uri = $CFG->emURLWS . '/cursos/registro/quiz';
+        $response = \Httpful\Request::get($uri)
+            ->sendsJson()
+            ->body($json)
+            ->send();            
+
+        if(!$response->body->result){
+            // // Monta url para matrícula
+            // echo "TESTE";
+            $urlEnrol = new moodle_url(evlURLWebServices() . '/cursos/registro?school=', 
+            array(
+                'school' => evlSiglaEscola(),
+                'school_course' => $id, 
+                'key' => evlAPIKey(), 
+                'redirect' => $urlRedirect->out(false) // false evita codificar '&' na url de redirecionamento
+            ));
+            redirect($urlEnrol);
+        }
+
+    }
     // Switchrole - sanity check in cost-order...
     $reset_user_allowed_editing = false;
     if ($switchrole > 0 && confirm_sesskey() &&
