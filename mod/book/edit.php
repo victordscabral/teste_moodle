@@ -66,8 +66,9 @@ if ($prevpage) {
 $options = array('noclean'=>true, 'subdirs'=>true, 'maxfiles'=>-1, 'maxbytes'=>0, 'context'=>$context);
 $chapter = file_prepare_standard_editor($chapter, 'content', $options, $context, 'mod_book', 'chapter', $chapter->id);
 $content = '';
+$content2 = '';
 
-$mform = new book_chapter_edit_form(null, array('chapter'=>$chapter, 'options'=>$options, 'content'=>$content));
+$mform = new book_chapter_edit_form(null, array('chapter'=>$chapter, 'options'=>$options, 'content'=>$content, 'content2'=>$content2));
 
 // If data submitted, then process and store.
 if ($mform->is_cancelled()) {
@@ -128,7 +129,6 @@ if ($mform->is_cancelled()) {
     book_preload_chapters($book); // fix structure
     redirect("view.php?id=$cm->id&chapterid=$data->id");
 }
-}
 else if ($mform->no_submit_button_pressed()) {    
     //$amount = count($mform->get_submit_value('tabtitle'));
     if ($mform->get_submit_value("addotags")) {
@@ -147,7 +147,7 @@ else if ($mform->no_submit_button_pressed()) {
 
         $content = '<div class="tab">'.$in."\n".'</div>' . "\n" . $tabs;
 
-        $mform = new book_chapter_edit_form(null, array('chapter'=>$chapter, 'options'=>$options, 'content'=>$content));
+        $mform = new book_chapter_edit_form(null, array('chapter'=>$chapter, 'options'=>$options, 'content'=>$content, 'content2'=>$content2));
     }
     else{
         //sanfona 
@@ -164,13 +164,9 @@ else if ($mform->no_submit_button_pressed()) {
 
         $content2 = '<div class="sanfona_div">'.$in2."\n".'</div>' . "\n";
 
-
-
-        $mform = new book_chapter_edit_form(null, array('chapter'=>$chapter, 'options'=>$options, 'content2'=>$content2));        
+        $mform = new book_chapter_edit_form(null, array('chapter'=>$chapter, 'options'=>$options, 'content'=>$content, 'content2'=>$content2));        
     }
 }
-
-
 
 // Otherwise fill and print the form.
 $PAGE->set_title($book->name);
