@@ -100,3 +100,6 @@
 [submodule "enrol/apply"]
 	path = enrol/apply
 	url = https://github.com/interlegis/moodle-enrol_apply.git
+[submodule "mod/hvp"]
+	path = mod/hvp
+	url = https://github.com/interlegis/h5p-moodle-plugin.git
