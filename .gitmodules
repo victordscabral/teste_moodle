@@ -97,3 +97,9 @@
 [submodule "blocks/xp"]
 	path = blocks/xp
 	url = https://github.com/FMCorz/moodle-block_xp.git
+[submodule "mod/zoom"]
+	path = mod/zoom
+	url = https://github.com/ucla/moodle-mod_zoom.git
+[submodule "enrol/apply"]
+	path = enrol/apply
+	url = https://github.com/interlegis/moodle-enrol_apply.git
