@@ -124,3 +124,6 @@
 [submodule "lib/editor/atto/plugins/teamsmeeting"]
 	path = lib/editor/atto/plugins/teamsmeeting
 	url = https://github.com/enovation/moodle-atto_teamsmeeting.git
+[submodule "local/webhooks"]
+	path = local/webhooks
+	url = https://github.com/valentineus/moodle-webhooks.git
