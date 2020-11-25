@@ -102,7 +102,7 @@
 	url = https://github.com/interlegis/moodle-enrol_apply.git
 [submodule "mod/hvp"]
 	path = mod/hvp
-	url = https://github.com/interlegis/h5p-moodle-plugin.git
+	url = https://github.com/h5p/moodle-mod_hvp.git
 [submodule "local/o365"]
 	path = local/o365
 	url = https://github.com/microsoft/moodle-local_o365.git
