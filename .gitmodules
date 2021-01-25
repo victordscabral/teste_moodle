@@ -127,3 +127,6 @@
 [submodule "local/webhooks"]
 	path = local/webhooks
 	url = https://github.com/valentineus/moodle-webhooks.git
+[submodule "local/wsilb"]
+	path = local/wsilb
+	url = https://github.com/interlegis/moodle-local_wsilb.git
