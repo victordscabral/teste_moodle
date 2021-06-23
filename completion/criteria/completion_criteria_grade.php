@@ -204,7 +204,7 @@ class completion_criteria_grade extends completion_criteria {
             INNER JOIN
                 {course_categories} cat
                 ON cat.id = c.category 
-                AND substr(cat.path,1,5) in (\'/46/\',\'/134/\',\'/130/\',\'/102/\')
+                AND split_part(cat.path, '/', 2) in (\'46\',\'134\',\'130\',\'102\')
             INNER JOIN
                 {grade_items} gi
             ON gi.courseid = c.id
