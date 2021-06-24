@@ -231,7 +231,7 @@ class completion_criteria_duration extends completion_criteria {
             INNER JOIN
                 {course_categories} cat
                 ON cat.id = c.category 
-                AND split_part(cat.path, '/', 2) in (\'46\',\'134\',\'130\',\'102\')
+                AND split_part(cat.path, \'/\', 2) in (\'46\',\'134\',\'130\',\'102\')
             INNER JOIN
                 {course_completion_criteria} cr
             ON c.id = cr.course
