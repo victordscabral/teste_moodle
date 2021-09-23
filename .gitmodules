@@ -130,3 +130,6 @@
 [submodule "local/wsilb"]
 	path = local/wsilb
 	url = https://github.com/interlegis/moodle-local_wsilb.git
+[submodule "mod/palestra"]
+	path = mod/palestra
+	url = https://github.com/interlegis/moodle-mod_palestra.git
