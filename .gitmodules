@@ -130,3 +130,6 @@
 [submodule "theme/ilb"]
 	path = theme/ilb
 	url = https://github.com/douglasffcastro/moodle_theme_ilb.git
+[submodule "mod/attendance"]
+	path = mod/attendance
+	url = https://github.com/interlegis/moodle-mod_attendance
