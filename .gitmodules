@@ -10,9 +10,6 @@
 [submodule "blocks/completion_progress"]
 	path = blocks/completion_progress
 	url = https://github.com/interlegis/moodle-block_completion_progress.git
-[submodule "mod/attendance"]
-	path = mod/attendance
-	url = https://github.com/danmarsden/moodle-mod_attendance.git
 [submodule "mod/certificate"]
 	path = mod/certificate
 	url = https://github.com/interlegis/moodle_certificates.git
@@ -130,3 +127,6 @@
 [submodule "mod/palestra"]
 	path = mod/palestra
 	url = https://github.com/interlegis/moodle-mod_palestra.git
+[submodule "theme/ilb"]
+	path = theme/ilb
+	url = https://github.com/douglasffcastro/moodle_theme_ilb.git
