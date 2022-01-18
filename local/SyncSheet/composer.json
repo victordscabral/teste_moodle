@@ -1,0 +1,11 @@
+{
+    "name": "danmarsden/moodle-mod_attendance",
+    "type": "moodle-mod",
+    "require": {
+        "composer/installers": "~1.0",
+        "google/apiclient": "^2.0"
+    },
+    "extra": {
+        "installer-name": "attendance"
+    }
+}

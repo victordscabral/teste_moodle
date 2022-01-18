@@ -27,6 +27,7 @@ require_once($CFG->libdir.'/gradelib.php');
 require_once($CFG->dirroot.'/user/renderer.php');
 require_once($CFG->dirroot.'/grade/lib.php');
 require_once($CFG->dirroot.'/grade/report/grader/lib.php');
+require_once(dirname(__FILE__)."/../../../local/SyncSheet/SyncSheet.php");
 
 $courseid      = required_param('id', PARAM_INT);        // course id
 $page          = optional_param('page', 0, PARAM_INT);   // active page
@@ -215,5 +216,33 @@ $event = \gradereport_grader\event\grade_report_viewed::create(
     )
 );
 $event->trigger();
+
+#Sincronização das notas na planilha do GoogleSheets
+echo "<p></p>";
+if( isset( $_POST['scoreSync'] )){
+	$sync = new ScoreSync($course->id);
+
+	$spreadsheetId = "11OUkfHXXdPuL-N2vIs1HweDdXUoBmNXwryPGpaIDVj0";
+
+	$values = $sync->getSheet($spreadsheetId);
+	$sync->insertSheet($values);
+
+
+}
+echo html_writer::start_div();
+    echo html_writer::start_tag('form', array(
+        'method'=>'post'
+    ));
+        echo '<input type="hidden" value="'.sesskey().'" name="sesskey" />';
+
+        echo html_writer::tag('input', '', 
+            array(
+                'type'=>'submit', 
+                'value' => 'Sincronizar Notas', 
+                'name' => 'scoreSync'
+            ));
+        
+    echo html_writer::end_tag('form');
+echo html_writer::end_div();
 
 echo $OUTPUT->footer();
