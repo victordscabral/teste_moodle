@@ -218,6 +218,8 @@ $event = \gradereport_grader\event\grade_report_viewed::create(
 $event->trigger();
 
 #Sincronização das notas na planilha do GoogleSheets
+
+/*
 echo "<p></p>";
 if( isset( $_POST['scoreSync'] )){
 	$sync = new ScoreSync($course->id);
@@ -246,3 +248,4 @@ echo html_writer::start_div();
 echo html_writer::end_div();
 
 echo $OUTPUT->footer();
+*/
