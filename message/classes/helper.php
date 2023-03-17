@@ -26,6 +26,8 @@ namespace core_message;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/message/lib.php');
+
 /**
  * Helper class for the message area.
  *
@@ -685,9 +687,15 @@ class helper {
      * @param bool $isdrawer Are we are rendering the drawer or is this on a full page?
      * @param int|null $sendtouser The ID of the user we want to send a message to
      * @param int|null $conversationid The ID of the conversation we want to load
+     * @param string|null $view The first view to load in the message widget
      * @return string The HTML.
      */
-    public static function render_messaging_widget(bool $isdrawer, int $sendtouser = null, int $conversationid = null) {
+    public static function render_messaging_widget(
+        bool $isdrawer,
+        int $sendtouser = null,
+        int $conversationid = null,
+        string $view = null
+    ) {
         global $USER, $CFG, $PAGE;
 
         // Early bail out conditions.
@@ -741,6 +749,12 @@ class helper {
                 'id' => $USER->id,
                 'midnight' => usergetmidnight(time())
             ],
+            // The starting timeout value for message polling.
+            'messagepollmin' => $CFG->messagingminpoll ?? MESSAGE_DEFAULT_MIN_POLL_IN_SECONDS,
+            // The maximum value that message polling timeout can reach.
+            'messagepollmax' => $CFG->messagingmaxpoll ?? MESSAGE_DEFAULT_MAX_POLL_IN_SECONDS,
+            // The timeout to reset back to after the max polling time has been reached.
+            'messagepollaftermax' => $CFG->messagingtimeoutpoll ?? MESSAGE_DEFAULT_TIMEOUT_POLL_IN_SECONDS,
             'contacts' => [
                 'sectioncontacts' => [
                     'placeholders' => array_fill(0, $contactscount > 50 ? 50 : $contactscount, true)
@@ -757,18 +771,24 @@ class helper {
                 'messageurl' => $messageurl,
                 'notification' => $notification
             ],
-            'sendtouser' => false,
-            'conversationid' => false,
             'isdrawer' => $isdrawer
         ];
 
-        if ($sendtouser) {
-            $templatecontext['sendtouser'] = $sendtouser;
+        if ($sendtouser || $conversationid) {
+            $route = [
+                'path' => 'view-conversation',
+                'params' => $conversationid ? [$conversationid] : [null, 'create', $sendtouser]
+            ];
+        } else if ($view === 'contactrequests') {
+            $route = [
+                'path' => 'view-contacts',
+                'params' => ['requests']
+            ];
+        } else {
+            $route = null;
         }
 
-        if ($conversationid) {
-            $templatecontext['conversationid'] = $conversationid;
-        }
+        $templatecontext['route'] = json_encode($route);
 
         return $renderer->render_from_template($template, $templatecontext);
     }

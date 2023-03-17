@@ -795,7 +795,7 @@ class page_requirements_manager {
                                                         array('dndenabled_inbox', 'moodle'), array('fileexists', 'moodle'), array('maxbytesfile', 'error'),
                                                         array('sizegb', 'moodle'), array('sizemb', 'moodle'), array('sizekb', 'moodle'), array('sizeb', 'moodle'),
                                                         array('maxareabytesreached', 'moodle'), array('serverconnection', 'error'),
-                                                        array('changesmadereallygoaway', 'moodle')
+                                                        array('changesmadereallygoaway', 'moodle'), array('complete', 'moodle')
                                                     ));
                     break;
             }
@@ -1016,7 +1016,9 @@ class page_requirements_manager {
 
         $component = clean_param($component, PARAM_COMPONENT);
         $module = clean_param($module, PARAM_ALPHANUMEXT);
+        $modname = "{$component}/{$module}";
 
+        $functioncode = [];
         if ($func !== null) {
             $func = clean_param($func, PARAM_ALPHANUMEXT);
 
@@ -1035,11 +1037,13 @@ class page_requirements_manager {
                 }
             }
 
-            $js = 'require(["' . $component . '/' . $module . '"], function(amd) { amd.' . $func . '(' . $strparams . '); });';
-
-        } else {
-            $js = 'require(["' . $component . '/' . $module . '"]);';
+            $functioncode[] = "amd.{$func}({$strparams});";
         }
+
+        $functioncode[] = "M.util.js_complete('{$modname}');";
+
+        $initcode = implode(' ', $functioncode);
+        $js = "M.util.js_pending('{$modname}'); require(['{$modname}'], function(amd) {{$initcode}});";
 
         $this->js_amd_inline($js);
     }
@@ -1362,8 +1366,10 @@ class page_requirements_manager {
         }
 
         // First include must be to a module with no dependencies, this prevents multiple requests.
-        $prefix = "require(['core/first'], function() {\n";
-        $suffix = "\n});";
+        $prefix = 'M.util.js_pending("core/first");';
+        $prefix .= "require(['core/first'], function() {\n";
+        $suffix = 'M.util.js_complete("core/first");';
+        $suffix .= "\n});";
         $output .= html_writer::script($prefix . implode(";\n", $this->amdjscode) . $suffix);
         return $output;
     }
@@ -1439,14 +1445,14 @@ class page_requirements_manager {
         );
 
         if ($this->yui3loader->combine) {
-            return '<script type="text/javascript" src="' .
+            return '<script src="' .
                     $this->yui3loader->local_comboBase .
                     implode('&amp;', $baserollups) .
                     '"></script>';
         } else {
             $code = '';
             foreach ($baserollups as $rollup) {
-                $code .= '<script type="text/javascript" src="'.$this->yui3loader->local_comboBase.$rollup.'"></script>';
+                $code .= '<script src="'.$this->yui3loader->local_comboBase.$rollup.'"></script>';
             }
             return $code;
         }
@@ -1569,6 +1575,9 @@ class page_requirements_manager {
     public function get_top_of_body_code(renderer_base $renderer) {
         // First the skip links.
         $output = $renderer->render_skip_links($this->skiplinks);
+
+        // Include the MDN Polyfill.
+        $output .= html_writer::script('', $this->js_fix_url('/lib/mdn-polyfills/polyfill.js'));
 
         // YUI3 JS needs to be loaded early in the body. It should be cached well by the browser.
         $output .= $this->get_yui3lib_headcode();

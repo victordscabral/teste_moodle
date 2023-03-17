@@ -277,7 +277,7 @@ class renderer {
         return new posts_renderer(
             $this->rendererbase,
             $this->builderfactory->get_exported_posts_builder(),
-            'mod_forum/forum_posts_with_context_links',
+            'mod_forum/forum_search_results',
             // Post process the exported posts to add the highlighting of the search terms to the post
             // and also the additional context links in the subject.
             function($exportedposts, $forumsbyid, $discussionsbyid) use ($searchterms, $urlfactory) {
@@ -481,11 +481,24 @@ class renderer {
                         $discussionentriesids,
                         $canseeanyprivatereply
                     );
+                $forumdatamapper = $this->legacydatamapperfactory->get_forum_data_mapper();
+                $forumrecord = $forumdatamapper->to_legacy_object($forum);
+                if (forum_tp_is_tracked($forumrecord, $user)) {
+                    $discussionunreadscount = $postvault->get_unread_count_for_discussion_ids(
+                            $user,
+                            $discussionentriesids,
+                            $canseeanyprivatereply
+                    );
+                } else {
+                    $discussionunreadscount = [];
+                }
 
-                array_walk($exportedposts['posts'], function($post) use ($discussionrepliescount) {
+                array_walk($exportedposts['posts'], function($post) use ($discussionrepliescount, $discussionunreadscount) {
                     $post->discussionrepliescount = $discussionrepliescount[$post->discussionid] ?? 0;
+                    $post->discussionunreadscount = $discussionunreadscount[$post->discussionid] ?? 0;
                     // TODO: Find a better solution due to language differences when defining the singular and plural form.
                     $post->isreplyplural = $post->discussionrepliescount != 1 ? true : false;
+                    $post->isunreadplural = $post->discussionunreadscount != 1 ? true : false;
                 });
 
                 $exportedposts['state']['hasdiscussions'] = $exportedposts['posts'] ? true : false;

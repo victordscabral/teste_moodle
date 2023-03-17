@@ -137,6 +137,7 @@ class mod_forum_mail_testcase extends advanced_testcase {
     }
 
     public function test_forced_subscription() {
+        global $DB;
         $this->resetAfterTest(true);
 
         // Create a course, with a forum.
@@ -145,8 +146,14 @@ class mod_forum_mail_testcase extends advanced_testcase {
         $options = array('course' => $course->id, 'forcesubscribe' => FORUM_FORCESUBSCRIBE);
         $forum = $this->getDataGenerator()->create_module('forum', $options);
 
-        // Create two users enrolled in the course as students.
-        list($author, $recipient) = $this->helper_create_users($course, 2);
+        // Create users enrolled in the course as students.
+        list($author, $recipient, $unconfirmed, $deleted) = $this->helper_create_users($course, 4);
+
+        // Make the third user unconfirmed (thence inactive) to make sure it does not break the notifications.
+        $DB->set_field('user', 'confirmed', 0, ['id' => $unconfirmed->id]);
+
+        // Mark the fourth user as deleted to make sure it does not break the notifications.
+        $DB->set_field('user', 'deleted', 1, ['id' => $deleted->id]);
 
         // Post a discussion to the forum.
         list($discussion, $post) = $this->helper_post_to_forum($forum, $author);
@@ -160,11 +167,21 @@ class mod_forum_mail_testcase extends advanced_testcase {
                 'userid' => $recipient->id,
                 'messages' => 1,
             ],
+            (object) [
+                'userid' => $unconfirmed->id,
+                'messages' => 0,
+            ],
+            (object) [
+                'userid' => $deleted->id,
+                'messages' => 0,
+            ],
         ];
         $this->queue_tasks_and_assert($expect);
 
         $this->send_notifications_and_assert($author, [$post]);
         $this->send_notifications_and_assert($recipient, [$post]);
+        $this->send_notifications_and_assert($unconfirmed, []);
+        $this->send_notifications_and_assert($deleted, []);
     }
 
     /**
@@ -764,6 +781,53 @@ class mod_forum_mail_testcase extends advanced_testcase {
         $this->send_notifications_and_assert($author, [$reply]);
     }
 
+    public function test_subscription_by_inactive_users() {
+        global $DB;
+        $this->resetAfterTest(true);
+
+        $course = $this->getDataGenerator()->create_course();
+
+        $options = array('course' => $course->id, 'forcesubscribe' => FORUM_CHOOSESUBSCRIBE);
+        $forum = $this->getDataGenerator()->create_module('forum', $options);
+
+        // Create two users enrolled in the course as students.
+        list($author, $u1, $u2, $u3) = $this->helper_create_users($course, 4);
+
+        // Subscribe the three users to the forum.
+        \mod_forum\subscriptions::subscribe_user($u1->id, $forum);
+        \mod_forum\subscriptions::subscribe_user($u2->id, $forum);
+        \mod_forum\subscriptions::subscribe_user($u3->id, $forum);
+
+        // Make the first user inactive - suspended.
+        $DB->set_field('user', 'suspended', 1, ['id' => $u1->id]);
+
+        // Make the second user inactive - unable to log in.
+        $DB->set_field('user', 'auth', 'nologin', ['id' => $u2->id]);
+
+        // Post a discussion to the forum.
+        list($discussion, $post) = $this->helper_post_to_forum($forum, $author);
+
+        $expect = [
+            (object) [
+                'userid' => $u1->id,
+                'messages' => 0,
+            ],
+            (object) [
+                'userid' => $u2->id,
+                'messages' => 0,
+            ],
+            (object) [
+                'userid' => $u3->id,
+                'messages' => 1,
+            ],
+        ];
+
+        $this->queue_tasks_and_assert($expect);
+        $this->send_notifications_and_assert($u1, []);
+        $this->send_notifications_and_assert($u2, []);
+        $this->send_notifications_and_assert($u3, [$post]);
+    }
+
     public function test_forum_message_inbound_multiple_posts() {
         $this->resetAfterTest(true);
 
@@ -1028,7 +1092,7 @@ class mod_forum_mail_testcase extends advanced_testcase {
         $htmlbase['user']['mailformat'] = 1;
         $htmlbase['expectations'][0]['contents'] = array(
             '~{\$a',
-            '~&(amp|lt|gt|quot|\#039);(?!course)',
+            '~&(amp|lt|gt|quot|\#039);(?!course|lang|version|iosappid|androidappid)',
             '<div class="attachments">( *\n *)?<a href',
             '<div class="subject">\n.*Hello Moodle', '>Moodle Forum', '>Welcome.*Moodle', '>Love Moodle', '>1\d1');
         $htmlcases['HTML mail without ampersands, quotes or lt/gt'] = array('data' => $htmlbase);
@@ -1057,7 +1121,7 @@ class mod_forum_mail_testcase extends advanced_testcase {
         $newcase['expectations'][0]['subject'] = '.*101.*HTML text and image';
         $newcase['expectations'][0]['contents'] = array(
             '~{\$a',
-            '~&(amp|lt|gt|quot|\#039);(?!course)',
+            '~&(amp|lt|gt|quot|\#039);(?!course|lang|version|iosappid|androidappid)',
             '<div class="attachments">( *\n *)?<a href',
             '<div class="subject">\n.*HTML text and image', '>Moodle Forum',
             '<p>Welcome to Moodle, '

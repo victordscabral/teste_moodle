@@ -1231,7 +1231,7 @@ class api {
         $result = array();
 
         // TODO We could improve the performance of this into one single query.
-        $coursemodulecompetencies = course_competency::list_course_module_competencies($cm->id);
+        $coursemodulecompetencies = course_module_competency::list_course_module_competencies($cm->id);
         $competencies = course_module_competency::list_competencies($cm->id);
 
         // Build the return values.
@@ -4775,6 +4775,40 @@ class api {
     public static function hook_cohort_deleted(\stdClass $cohort) {
         global $DB;
         $DB->delete_records(template_cohort::TABLE, array('cohortid' => $cohort->id));
+    }
+
+    /**
+     * Action to perform when a user is deleted.
+     *
+     * @param int $userid The user id.
+     */
+    public static function hook_user_deleted($userid) {
+        global $DB;
+
+        $usercompetencies = $DB->get_records(user_competency::TABLE, ['userid' => $userid], '', 'id');
+        foreach ($usercompetencies as $usercomp) {
+            $DB->delete_records(evidence::TABLE, ['usercompetencyid' => $usercomp->id]);
+        }
+
+        $DB->delete_records(user_competency::TABLE, ['userid' => $userid]);
+        $DB->delete_records(user_competency_course::TABLE, ['userid' => $userid]);
+        $DB->delete_records(user_competency_plan::TABLE, ['userid' => $userid]);
+
+        // Delete any associated files.
+        $fs = get_file_storage();
+        $context = context_user::instance($userid);
+        $userevidences = $DB->get_records(user_evidence::TABLE, ['userid' => $userid], '', 'id');
+        foreach ($userevidences as $userevidence) {
+            $DB->delete_records(user_evidence_competency::TABLE, ['userevidenceid' => $userevidence->id]);
+            $DB->delete_records(user_evidence::TABLE, ['id' => $userevidence->id]);
+            $fs->delete_area_files($context->id, 'core_competency', 'userevidence', $userevidence->id);
+        }
+
+        $userplans = $DB->get_records(plan::TABLE, ['userid' => $userid], '', 'id');
+        foreach ($userplans as $userplan) {
+            $DB->delete_records(plan_competency::TABLE, ['planid' => $userplan->id]);
+            $DB->delete_records(plan::TABLE, ['id' => $userplan->id]);
+        }
     }
 
     /**

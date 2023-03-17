@@ -23,12 +23,13 @@ $drawer-offscreen-gutter: 20px !default;
 #nav-drawer.closed {
     left: -($drawer-width + $drawer-offscreen-gutter);
 }
-#page {
-    margin-top: $navbar-height;
+
+#nav-drawer[aria-hidden=true] .list-group-item {
+    display: none;
 }
 
 /* Use a variable for the drawer background colors. */
-$drawer-bg: $gray-lighter !default;
+$drawer-bg: darken($body-bg, 5%) !default;
 
 [data-region="drawer"] {
     position: fixed;
@@ -39,7 +40,7 @@ $drawer-bg: $gray-lighter !default;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     z-index: $zindex-dropdown - 1;
-    background-color: darken($body-bg, 5%);
+    background-color: $drawer-bg;
     -webkit-transition: right 0.5s ease, left 0.5s ease;
     -moz-transition: right 0.5s ease, left 0.5s ease;
     transition: right 0.5s ease, left 0.5s ease;
@@ -47,6 +48,17 @@ $drawer-bg: $gray-lighter !default;
 #nav-drawer {
     right: auto;
     left: 0;
+
+    /* Override the z-indexes defined in bootstrap/_list-group.scss that
+       lead to side effects on the user tours positioning. */
+    .list-group-item-action.active,
+    .list-group-item.active {
+        z-index: inherit;
+    }
+    .list-group-item-action.active + .list-group-item,
+    .list-group-item.active + .list-group-item {
+        border-top: none;
+    }
 }
 #page {
     margin-top: $fixed-header-y;

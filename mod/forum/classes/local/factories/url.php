@@ -394,11 +394,13 @@ class url {
      * Get the url to view an author's profile.
      *
      * @param author_entity $author The author
+     * @param int $courseid The course id
      * @return moodle_url
      */
-    public function get_author_profile_url(author_entity $author) : moodle_url {
+    public function get_author_profile_url(author_entity $author, int $courseid) : moodle_url {
         return new moodle_url('/user/view.php', [
-            'id' => $author->get_id()
+            'id' => $author->get_id(),
+            'course' => $courseid
         ]);
     }
 
@@ -427,6 +429,18 @@ class url {
         return $userpicture->get_url($PAGE);
     }
 
+    /**
+     * Get the url to view an author's group.
+     *
+     * @param \stdClass $group The group
+     * @return moodle_url
+     */
+    public function get_author_group_url(\stdClass $group) : moodle_url {
+        return new moodle_url('/user/index.php', [
+                'id' => $group->courseid,
+                'group' => $group->id
+        ]);
+    }
     /**
      * Get the url to mark a discussion as read.
      *

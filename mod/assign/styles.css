@@ -187,12 +187,11 @@
 }
 
 .path-mod-assign .expandsummaryicon {
-    cursor: pointer;
     display: none;
 }
 
 .path-mod-assign.jsenabled .expandsummaryicon {
-    display: inline;
+    display: inline-block;
 }
 
 .path-mod-assign .hidefull {
@@ -1160,6 +1159,7 @@
         width: auto;
         display: inline-block;
         margin: 0 auto;
+        height: auto;
     }
 
     .path-mod-assign [data-region="user-selector"] .alignment {

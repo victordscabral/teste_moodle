@@ -1044,7 +1044,8 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
 
     // Do not merge files, leave it as it was.
     if ($draftitemid === IGNORE_FILE_MERGE) {
-        return null;
+        // Safely return $text, no need to rewrite pluginfile because this is mostly comming from an external client like the app.
+        return $text;
     }
 
     $usercontext = context_user::instance($USER->id);
@@ -4237,7 +4238,7 @@ function file_pluginfile($relativepath, $forcedownload, $preview = null, $offlin
 
         } else if ($filearea == GRADE_FEEDBACK_FILEAREA || $filearea == GRADE_HISTORY_FEEDBACK_FILEAREA) {
             if ($context->contextlevel != CONTEXT_MODULE) {
-                send_file_not_found;
+                send_file_not_found();
             }
 
             require_login($course, false);

@@ -65,10 +65,8 @@ if ($prevpage) {
 
 $options = array('noclean'=>true, 'subdirs'=>true, 'maxfiles'=>-1, 'maxbytes'=>0, 'context'=>$context);
 $chapter = file_prepare_standard_editor($chapter, 'content', $options, $context, 'mod_book', 'chapter', $chapter->id);
-$content = '';
-$content2 = '';
 
-$mform = new book_chapter_edit_form(null, array('chapter'=>$chapter, 'options'=>$options, 'content'=>$content, 'content2'=>$content2));
+$mform = new book_chapter_edit_form(null, array('chapter'=>$chapter, 'options'=>$options));
 
 // If data submitted, then process and store.
 if ($mform->is_cancelled()) {
@@ -129,44 +127,6 @@ if ($mform->is_cancelled()) {
     book_preload_chapters($book); // fix structure
     redirect("view.php?id=$cm->id&chapterid=$data->id");
 }
-else if ($mform->no_submit_button_pressed()) {    
-    //$amount = count($mform->get_submit_value('tabtitle'));
-    if ($mform->get_submit_value("addotags")) {
-        $in = '';
-        $tabs = '';
-        for ($x = 0; $x < count($mform->get_submit_value('tabtitle')); $x++) {
-            $y = $x + 1;
-            // $in .= '<div class="tab'.$y.'">'.$mform->get_submit_value('tabtitle['.$x.']').'</div>
-            //';
-            $in .= "\n\t<button class='tablinks' onclick=\"openCity(event, 'Tab".$x."')\">".$mform->get_submit_value('tabtitle['.$x.']')."</button>";
-
-            $arr = array_values($mform->get_submit_value('tabcont['.$x.']'));
-
-            $tabs .= "<div id='Tab".$x."' class='tabcontent'>"."\n\t"."<h3>".$mform->get_submit_value('tabtitlecont['.$x.']')."</h3>"."\n\t".$arr[0]."\n"."</div>\n";
-        }
-
-        $content = '<div class="tab">'.$in."\n".'</div>' . "\n" . $tabs;
-
-        $mform = new book_chapter_edit_form(null, array('chapter'=>$chapter, 'options'=>$options, 'content'=>$content, 'content2'=>$content2));
-    }
-    else{
-        //sanfona 
-        for ($x = 0; $x < count($mform->get_submit_value('sanfonatitle')); $x++) {
-            $y = $x + 1;
-            // $in .= '<div class="tab'.$y.'">'.$mform->get_submit_value('tabtitle['.$x.']').'</div>
-            //';
-
-            $arr = array_values($mform->get_submit_value('sanfonacont['.$x.']'));
-
-            $in2 .= "\n\t<button class=\"sanfona\">".$mform->get_submit_value('sanfonatitle['.$x.']')."</button>\n\t<div class=\"painel\">
-                        " .$arr[0]."\n\t</div>\n";
-        }
-
-        $content2 = '<div class="sanfona_div">'.$in2."\n".'</div>' . "\n";
-
-        $mform = new book_chapter_edit_form(null, array('chapter'=>$chapter, 'options'=>$options, 'content'=>$content, 'content2'=>$content2));        
-    }
-}
 
 // Otherwise fill and print the form.
 $PAGE->set_title($book->name);
@@ -177,7 +137,7 @@ if ($chapters = book_preload_chapters($book)) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading($book->name);
+echo $OUTPUT->heading(format_string($book->name));
 
 $mform->display();
 

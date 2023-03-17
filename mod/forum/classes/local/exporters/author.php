@@ -140,15 +140,27 @@ class author extends exporter {
         $author = $this->author;
         $authorcontextid = $this->authorcontextid;
         $urlfactory = $this->related['urlfactory'];
+        $context = $this->related['context'];
+        $forum = $this->related['forum'];
 
         if ($this->canview) {
-            $groups = array_map(function($group) {
-                $imageurl = get_group_picture_url($group, $group->courseid);
+            $groups = array_map(function($group) use ($urlfactory, $context) {
+                $imageurl = null;
+                $groupurl = null;
+                if (!$group->hidepicture) {
+                    $imageurl = get_group_picture_url($group, $group->courseid, true);
+                }
+                if (course_can_view_participants($context)) {
+                    $groupurl = $urlfactory->get_author_group_url($group);
+                }
+
                 return [
                     'id' => $group->id,
                     'name' => $group->name,
                     'urls' => [
-                        'image' => $imageurl ? $imageurl->out(false) : null
+                        'image' => $imageurl ? $imageurl->out(false) : null,
+                        'group' => $groupurl ? $groupurl->out(false) : null
+
                     ]
                 ];
             }, $this->authorgroups);
@@ -158,7 +170,7 @@ class author extends exporter {
                 'fullname' => $author->get_full_name(),
                 'groups' => $groups,
                 'urls' => [
-                    'profile' => ($urlfactory->get_author_profile_url($author))->out(false),
+                    'profile' => ($urlfactory->get_author_profile_url($author, $forum->get_course_id()))->out(false),
                     'profileimage' => ($urlfactory->get_author_profile_image_url($author, $authorcontextid))->out(false)
                 ]
             ];
@@ -184,7 +196,8 @@ class author extends exporter {
     protected static function define_related() {
         return [
             'urlfactory' => 'mod_forum\local\factories\url',
-            'context' => 'context'
+            'context' => 'context',
+            'forum' => 'mod_forum\local\entities\forum',
         ];
     }
 }

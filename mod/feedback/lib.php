@@ -1925,10 +1925,23 @@ function feedback_save_tmp_values($feedbackcompletedtmp, $feedbackcompleted) {
         //check if there are depend items
         $item = $DB->get_record('feedback_item', array('id'=>$value->item));
         if ($item->dependitem > 0 && isset($allitems[$item->dependitem])) {
-            $check = feedback_compare_item_value($tmpcplid,
-                                        $allitems[$item->dependitem],
-                                        $item->dependvalue,
-                                        true);
+            $ditem = $allitems[$item->dependitem];
+            while ($ditem !== null) {
+                $check = feedback_compare_item_value($tmpcplid,
+                                            $ditem,
+                                            $item->dependvalue,
+                                            true);
+                if (!$check) {
+                    break;
+                }
+                if ($ditem->dependitem > 0 && isset($allitems[$ditem->dependitem])) {
+                    $item = $ditem;
+                    $ditem = $allitems[$ditem->dependitem];
+                } else {
+                    $ditem = null;
+                }
+            }
+
         } else {
             $check = true;
         }
@@ -3026,6 +3039,14 @@ function mod_feedback_core_calendar_provide_event_action(calendar_event $event,
 
     if (!$cm->uservisible) {
         // The module is not visible to the user for any reason.
+        return null;
+    }
+
+    $completion = new \completion_info($cm->get_course());
+
+    $completiondata = $completion->get_data($cm, false, $userid);
+
+    if ($completiondata->completionstate != COMPLETION_INCOMPLETE) {
         return null;
     }
 

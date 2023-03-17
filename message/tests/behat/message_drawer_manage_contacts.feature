@@ -24,8 +24,9 @@ Feature: Manage contacts
       | user     | contact |
       | student1 | student2 |
     And the following config values are set as admin:
-      | messaging | 1 |
+      | messaging         | 1 |
       | messagingallusers | 1 |
+      | messagingminpoll  | 1 |
 
   Scenario: Send a 'contact request' to someone to add a contact
     Given I log in as "student1"
@@ -43,7 +44,7 @@ Feature: Manage contacts
     And I should see "Contact request sent"
     And I log out
     And I log in as "student4"
-    Then I should see "2" in the "//*[@data-region='count-container']" "xpath_element"
+    Then I should see "2" in the "//div[@data-region='popover-region-messages']//*[@data-region='count-container']" "xpath_element"
     And I open messaging
     And I click on "Contacts" "link"
     Then I should see "2" in the "//div[@data-region='view-contacts']//*[@data-region='contact-request-count']" "xpath_element"
@@ -68,7 +69,7 @@ Feature: Manage contacts
     And I should see "Contact request sent"
     And I log out
     And I log in as "student3"
-    Then I should see "1" in the "//*[@data-region='count-container']" "xpath_element"
+    Then I should see "1" in the "//div[@data-region='popover-region-messages']//*[@data-region='count-container']" "xpath_element"
     And I open messaging
     And I click on "Contacts" "link"
     Then I should see "1" in the "//div[@data-region='view-contacts']//*[@data-region='contact-request-count']" "xpath_element"

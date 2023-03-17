@@ -60,6 +60,8 @@ class capability {
     private $forumrecord;
     /** @var context $context Module context for the forum */
     private $context;
+    /** @var array $canviewpostcache Cache of discussion posts that can be viewed by a user. */
+    protected $canviewpostcache = [];
 
     /**
      * Constructor.
@@ -360,12 +362,23 @@ class capability {
             return false;
         }
 
+        // Return cached can view if possible.
+        if (isset($this->canviewpostcache[$user->id][$post->get_id()])) {
+            return $this->canviewpostcache[$user->id][$post->get_id()];
+        }
+
+        // Otherwise, check if the user can see this post.
         $forum = $this->get_forum();
         $forumrecord = $this->get_forum_record();
         $discussionrecord = $this->get_discussion_record($discussion);
         $postrecord = $this->get_post_record($post);
         $coursemodule = $forum->get_course_module_record();
-        return forum_user_can_see_post($forumrecord, $discussionrecord, $postrecord, $user, $coursemodule, false);
+        $canviewpost = forum_user_can_see_post($forumrecord, $discussionrecord, $postrecord, $user, $coursemodule, false);
+
+        // Then cache the result before returning.
+        $this->canviewpostcache[$user->id][$post->get_id()] = $canviewpost;
+
+        return $canviewpost;
     }
 
     /**
@@ -483,6 +496,9 @@ class capability {
     public function can_reply_to_post(stdClass $user, discussion_entity $discussion, post_entity $post) : bool {
         if ($post->is_private_reply()) {
             // It is not possible to reply to a private reply.
+            return false;
+        } else if (!$this->can_view_post($user, $discussion, $post)) {
+            // If the user cannot view the post in the first place, the user should not be able to reply to the post.
             return false;
         }
 
@@ -606,5 +622,31 @@ class capability {
      */
     public function can_manage_tags(stdClass $user) : bool {
         return has_capability('moodle/tag:manage', context_system::instance(), $user);
+    }
+
+    /**
+     * Checks whether the user can self enrol into the course.
+     * Mimics the checks on the add button in deprecatedlib/forum_print_latest_discussions
+     *
+     * @param stdClass $user
+     * @return bool
+     */
+    public function can_self_enrol(stdClass $user) : bool {
+        $canstart = false;
+
+        if ($this->forum->get_type() != 'news') {
+            if (isguestuser($user) or !isloggedin()) {
+                $canstart = true;
+            }
+
+            if (!is_enrolled($this->context) and !is_viewing($this->context)) {
+                 // Allow guests and not-logged-in to see the button - they are prompted to log in after clicking the link,
+                 // Normal users with temporary guest access see this button too, they are asked to enrol instead,
+                 // Do not show the button to users with suspended enrolments here.
+                $canstart = enrol_selfenrol_available($this->forum->get_course_id());
+            }
+        }
+
+        return $canstart;
     }
 }

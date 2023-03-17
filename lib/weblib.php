@@ -1110,7 +1110,7 @@ function validate_email($address) {
     global $CFG;
     require_once($CFG->libdir.'/phpmailer/moodle_phpmailer.php');
 
-    return moodle_phpmailer::validateAddress($address);
+    return moodle_phpmailer::validateAddress($address) && !preg_match('/[<>]/', $address);
 }
 
 /**
@@ -1856,7 +1856,7 @@ function purify_html($text, $options = array()) {
         }
 
         if ($def = $config->maybeGetRawHTMLDefinition()) {
-            $def->addElement('nolink', 'Block', 'Flow', array());                       // Skip our filters inside.
+            $def->addElement('nolink', 'Inline', 'Flow', array());                      // Skip our filters inside.
             $def->addElement('tex', 'Inline', 'Inline', array());                       // Tex syntax, equivalent to $$xx$$.
             $def->addElement('algebra', 'Inline', 'Inline', array());                   // Algebra syntax, equivalent to @@xx@@.
             $def->addElement('lang', 'Block', 'Flow', array(), array('lang'=>'CDATA')); // Original multilang style - only our hacked lang attribute.

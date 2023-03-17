@@ -183,9 +183,15 @@ class discussion {
             $exporteddiscussion = $this->get_exported_discussion($user);
         }
 
+        $hasanyactions = false;
+        $hasanyactions = $hasanyactions || $capabilitymanager->can_favourite_discussion($user);
+        $hasanyactions = $hasanyactions || $capabilitymanager->can_pin_discussions($user);
+        $hasanyactions = $hasanyactions || $capabilitymanager->can_manage_forum($user);
+
         $exporteddiscussion = array_merge($exporteddiscussion, [
             'notifications' => $this->get_notifications($user),
             'html' => [
+                'hasanyactions' => $hasanyactions,
                 'posts' => $this->postsrenderer->render($user, [$this->forum], [$this->discussion], $posts),
                 'modeselectorform' => $this->get_display_mode_selector_html($displaymode),
                 'subscribe' => null,
@@ -321,6 +327,9 @@ class discussion {
                 $select = new url_select($forummenu, '',
                         ['/mod/forum/discuss.php?d=' . $discussion->get_id() => get_string("movethisdiscussionto", "forum")],
                         'forummenu', get_string('move'));
+                $select->set_label(get_string('movethisdiscussionlabel', 'mod_forum'), [
+                    'class' => 'sr-only',
+                ]);
                 $html .= $this->renderer->render($select);
                 $html .= "</div>";
                 return $html;

@@ -278,7 +278,7 @@ if ($bulkoperations) {
     if ($participanttable->get_page_size() < $participanttable->totalrows) {
         // Select all users, refresh page showing all users and mark them all selected.
         $label = get_string('selectalluserswithcount', 'moodle', $participanttable->totalrows);
-        echo html_writer::tag('input', "", array('type' => 'button', 'id' => 'checkall', 'class' => 'btn btn-secondary',
+        echo html_writer::empty_tag('input', array('type' => 'button', 'id' => 'checkall', 'class' => 'btn btn-secondary',
                 'value' => $label, 'data-showallink' => $showalllink));
         // Select all users, mark all users on page as selected.
         echo html_writer::tag('input', "", array('type' => 'button', 'id' => 'checkallonpage', 'class' => 'btn btn-secondary',
@@ -292,7 +292,9 @@ if ($bulkoperations) {
         'value' => get_string('deselectall')));
     echo html_writer::end_tag('div');
     $displaylist = array();
-    $displaylist['#messageselect'] = get_string('messageselectadd');
+    if (!empty($CFG->messaging)) {
+        $displaylist['#messageselect'] = get_string('messageselectadd');
+    }
     if (!empty($CFG->enablenotes) && has_capability('moodle/notes:manage', $context) && $context->id != $frontpagectx->id) {
         $displaylist['#addgroupnote'] = get_string('addnewnote', 'notes');
     }
@@ -337,15 +339,12 @@ if ($bulkoperations) {
         }
     }
 
-    echo html_writer::tag('div', html_writer::tag('label', get_string("withselectedusers"),
-        array('for' => 'formactionid', 'class' => 'col-form-label d-inline')) .
-        html_writer::select($displaylist, 'formaction', '', array('' => 'choosedots'), array('id' => 'formactionid')),
-        array('class' => 'ml-2'));
+    $label = html_writer::tag('label', get_string("withselectedusers"),
+            ['for' => 'formactionid', 'class' => 'col-form-label d-inline']);
+    $select = html_writer::select($displaylist, 'formaction', '', ['' => 'choosedots'], ['id' => 'formactionid']);
+    echo html_writer::tag('div', $label . $select, ['class' => 'ml-2']);
 
-    echo '<input type="hidden" name="id" value="'.$course->id.'" />';
-    echo '<noscript style="display:inline">';
-    echo '<div><input type="submit" value="'.get_string('ok').'" /></div>';
-    echo '</noscript>';
+    echo '<input type="hidden" name="id" value="' . $course->id . '" />';
     echo '</div></div></div>';
     echo '</form>';
 
@@ -360,6 +359,8 @@ echo '</div>';  // Userlist.
 
 $enrolrenderer = $PAGE->get_renderer('core_enrol');
 echo '<div class="float-right">';
+// Need to re-generate the buttons to avoid having elements with duplicate ids on the page.
+$enrolbuttons = $manager->get_manual_enrol_buttons();
 foreach ($enrolbuttons as $enrolbutton) {
     echo $enrolrenderer->render($enrolbutton);
 }
@@ -367,9 +368,8 @@ echo '</div>';
 
 if ($newcourse == 1) {
     $str = get_string('proceedtocourse', 'enrol');
-    // Floated left so it goes under the enrol users button on mobile.
     // The margin is to make it line up with the enrol users button when they are both on the same line.
-    $classes = 'my-1 pull-xs-left';
+    $classes = 'my-1';
     $url = course_get_url($course);
     echo $OUTPUT->single_button($url, $str, 'GET', array('class' => $classes));
 }

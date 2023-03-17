@@ -210,34 +210,39 @@ class completion_criteria_activity extends completion_criteria {
             SELECT DISTINCT
                 c.id AS course,
                 cr.id AS criteriaid,
-                mc.userid AS userid,
+                ra.userid AS userid,
                 mc.timemodified AS timecompleted
             FROM
                 {course_completion_criteria} cr
             INNER JOIN
                 {course} c
-            ON cr.course = c.id 
+             ON cr.course = c.id
             INNER JOIN
-                {course_categories} cat
-                ON cat.id = c.category 
-                AND split_part(cat.path, \'/\', 2) in (\'46\',\'134\',\'130\',\'102\')
+                {context} con
+             ON con.instanceid = c.id
+            INNER JOIN
+                {role_assignments} ra
+              ON ra.contextid = con.id
             INNER JOIN
                 {course_modules_completion} mc
-            ON mc.coursemoduleid = cr.moduleinstance
+             ON mc.coursemoduleid = cr.moduleinstance
+            AND mc.userid = ra.userid
             LEFT JOIN
                 {course_completion_crit_compl} cc
-            ON cc.criteriaid = cr.id
-            AND cc.userid = mc.userid
+             ON cc.criteriaid = cr.id
+            AND cc.userid = ra.userid
             WHERE
                 cr.criteriatype = '.COMPLETION_CRITERIA_TYPE_ACTIVITY.'
+            AND con.contextlevel = '.CONTEXT_COURSE.'
             AND c.enablecompletion = 1
             AND cc.id IS NULL
             AND (
                 mc.completionstate = '.COMPLETION_COMPLETE.'
-                OR mc.completionstate = '.COMPLETION_COMPLETE_PASS.'
-                OR mc.completionstate = '.COMPLETION_COMPLETE_FAIL.'
-            )';
-        
+             OR mc.completionstate = '.COMPLETION_COMPLETE_PASS.'
+             OR mc.completionstate = '.COMPLETION_COMPLETE_FAIL.'
+                )
+        ';
+
         // Loop through completions, and mark as complete
         $rs = $DB->get_recordset_sql($sql);
         foreach ($rs as $record) {

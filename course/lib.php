@@ -28,7 +28,6 @@ require_once($CFG->libdir.'/completionlib.php');
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/datalib.php');
 require_once($CFG->dirroot.'/course/format/lib.php');
-require_once($CFG->dirroot.'/blocks/escola_modelo/classes/util.php');
 
 define('COURSE_MAX_LOGS_PER_PAGE', 1000);       // Records.
 define('COURSE_MAX_RECENT_PERIOD', 172800);     // Two days, in seconds.
@@ -1145,7 +1144,9 @@ function course_delete_module($cmid, $async = false) {
     }
 
     // Delete activity context questions and question categories.
-    question_delete_activity($cm);
+    $showinfo = !defined('AJAX_SCRIPT') || AJAX_SCRIPT == '0';
+
+    question_delete_activity($cm, $showinfo);
 
     // Call the delete_instance function, if it returns false throw an exception.
     if (!$deleteinstancefunction($cm->instance)) {
@@ -1290,16 +1291,36 @@ function course_module_flag_for_async_deletion($cmid) {
  * Checks whether the given course has any course modules scheduled for adhoc deletion.
  *
  * @param int $courseid the id of the course.
+ * @param bool $onlygradable whether to check only gradable modules or all modules.
  * @return bool true if the course contains any modules pending deletion, false otherwise.
  */
-function course_modules_pending_deletion($courseid) {
+function course_modules_pending_deletion($courseid, bool $onlygradable = false) : bool {
     if (empty($courseid)) {
         return false;
     }
+
+    if ($onlygradable) {
+        // Fetch modules with grade items.
+        if (!$coursegradeitems = grade_item::fetch_all(['itemtype' => 'mod', 'courseid' => $courseid])) {
+            // Return early when there is none.
+            return false;
+        }
+    }
+
     $modinfo = get_fast_modinfo($courseid);
     foreach ($modinfo->get_cms() as $module) {
         if ($module->deletioninprogress == '1') {
-            return true;
+            if ($onlygradable) {
+                // Check if the module being deleted is in the list of course modules with grade items.
+                foreach ($coursegradeitems as $coursegradeitem) {
+                    if ($coursegradeitem->itemmodule == $module->modname && $coursegradeitem->iteminstance == $module->instance) {
+                        // The module being deleted is within the gradable  modules.
+                        return true;
+                    }
+                }
+            } else {
+                return true;
+            }
         }
     }
     return false;
@@ -2183,6 +2204,7 @@ function move_courses($courseids, $categoryid) {
     foreach ($dbcourses as $dbcourse) {
         $course = new stdClass();
         $course->id = $dbcourse->id;
+        $course->timemodified = time();
         $course->category  = $category->id;
         $course->sortorder = $category->sortorder + MAX_COURSES_IN_CATEGORY - $i++;
         if ($category->visible == 0) {
@@ -2582,19 +2604,12 @@ function update_course($data, $editoroptions = NULL) {
         }
     }
 
-    // Pegar status de publicidade do curso na EVL, antes da alteração
-    $oldPublicoEVL = obtemCampoCustomizadoCurso($data->id, CURSO_CUSTOMFIELD_PUBLICO);
-
     // Update custom fields if there are any of them in the form.
     $handler = core_course\customfield\course_handler::create();
     $handler->instance_form_save($data);
 
     // Update with the new data
     $DB->update_record('course', $data);
-
-    // Pegar status de publicidade do curso na EVL, após a alteração
-    $newPublicoEVL = obtemCampoCustomizadoCurso($data->id, CURSO_CUSTOMFIELD_PUBLICO);
-
     // make sure the modinfo cache is reset
     rebuild_course_cache($data->id);
 
@@ -2643,12 +2658,6 @@ function update_course($data, $editoroptions = NULL) {
     $event->set_legacy_logdata(array($course->id, 'course', 'update', 'edit.php?id=' . $course->id, $course->id));
     $event->trigger();
 
-    // Se curso passou a ser visível, deve sincronizar as matrículas
-    if(!$oldPublicoEVL && $newPublicoEVL) {
-        $syncStartTime = $DB->get_record_sql('SELECT extract(epoch from now())::int8');
-        atualizaMatriculas($syncStartTime, $data->id);    
-    }
-
     if ($oldcourse->format !== $course->format) {
         // Remove all options stored for the previous format
         // We assume that new course format migrated everything it needed watching trigger
@@ -2675,6 +2684,7 @@ function average_number_of_participants() {
             AND c.visible = 1) total';
     $params = array('siteid' => $SITE->id);
     $enrolmenttotal = $DB->count_records_sql($sql, $params);
+
 
     //count total of visible courses (minus front page)
     $coursetotal = $DB->count_records('course', array('visible' => 1));
@@ -4007,7 +4017,6 @@ function course_get_user_administration_options($course, $context) {
         $options->outcomes = !empty($CFG->enableoutcomes) && has_capability('moodle/course:update', $context);
         $options->badges = !empty($CFG->enablebadges);
         $options->import = has_capability('moodle/restore:restoretargetimport', $context);
-        $options->publish = !empty($CFG->enablecoursepublishing) && has_capability('moodle/course:publish', $context);
         $options->reset = has_capability('moodle/course:reset', $context);
         $options->roles = has_capability('moodle/role:switchroles', $context);
     } else {
@@ -4584,7 +4593,7 @@ function course_get_recent_courses(int $userid = null, int $limit = 0, int $offs
     }
 
     $basefields = array('id', 'idnumber', 'summary', 'summaryformat', 'startdate', 'enddate', 'category',
-            'shortname', 'fullname', 'timeaccess', 'component');
+            'shortname', 'fullname', 'timeaccess', 'component', 'visible');
 
     $sort = trim($sort);
     if (empty($sort)) {

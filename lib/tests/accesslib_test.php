@@ -340,7 +340,9 @@ class core_accesslib_testcase extends advanced_testcase {
 
         $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
-        role_assign($CFG->coursecontact, $user->id, context_course::instance($course->id));
+        $contactroles = preg_split('/,/', $CFG->coursecontact);
+        $roleid = reset($contactroles);
+        role_assign($roleid, $user->id, context_course::instance($course->id));
         $this->assertTrue(has_coursecontact_role($user->id));
     }
 
@@ -727,8 +729,13 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->resetAfterTest();
 
         $allroles = get_all_roles();
-        $this->assertInternalType('array', $allroles);
-        $this->assertCount(8, $allroles); // There are 8 roles is standard install.
+        $this->assertIsArray($allroles);
+        $initialrolescount = count($allroles);
+        $this->assertTrue($initialrolescount >= 8); // There are 8 roles is standard install.
+        $rolenames = array_column($allroles, 'shortname');
+        foreach (get_role_archetypes() as $archetype) {
+            $this->assertContains($archetype, $rolenames);
+        }
 
         $role = reset($allroles);
         $role = (array)$role;
@@ -750,8 +757,8 @@ class core_accesslib_testcase extends advanced_testcase {
         $renames = $DB->get_records_menu('role_names', array('contextid'=>$coursecontext->id), '', 'roleid, name');
 
         $allroles = get_all_roles($coursecontext);
-        $this->assertInternalType('array', $allroles);
-        $this->assertCount(9, $allroles);
+        $this->assertIsArray($allroles);
+        $this->assertCount($initialrolescount + 1, $allroles);
         $role = reset($allroles);
         $role = (array)$role;
 
@@ -784,18 +791,18 @@ class core_accesslib_testcase extends advanced_testcase {
     public function test_get_archetype_roles() {
         $this->resetAfterTest();
 
-        // New install should have 1 role for each archetype.
+        // New install should have at least 1 role for each archetype.
         $archetypes = get_role_archetypes();
         foreach ($archetypes as $archetype) {
             $roles = get_archetype_roles($archetype);
-            $this->assertCount(1, $roles);
+            $this->assertGreaterThanOrEqual(1, count($roles));
             $role = reset($roles);
             $this->assertSame($archetype, $role->archetype);
         }
 
         create_role('New student role', 'student2', 'New student description', 'student');
         $roles = get_archetype_roles('student');
-        $this->assertCount(2, $roles);
+        $this->assertGreaterThanOrEqual(2, count($roles));
     }
 
     /**
@@ -818,8 +825,11 @@ class core_accesslib_testcase extends advanced_testcase {
         $renames = $DB->get_records_menu('role_names', array('contextid'=>$coursecontext->id), '', 'roleid, name');
 
         foreach ($allroles as $role) {
+            if (in_array($role->shortname, get_role_archetypes())) {
+                // Standard roles do not have a set name.
+                $this->assertSame('', $role->name);
+            }
             // Get localised name from lang pack.
-            $this->assertSame('', $role->name);
             $name = role_get_name($role, null, ROLENAME_ORIGINAL);
             $this->assertNotEmpty($name);
             $this->assertNotEquals($role->shortname, $name);
@@ -1500,14 +1510,8 @@ class core_accesslib_testcase extends advanced_testcase {
         $allroles = get_all_roles();
         $expected = array($id2=>$allroles[$id2]);
 
-        foreach (get_role_archetypes() as $archetype) {
-            $defaults = get_default_contextlevels($archetype);
-            if (in_array(CONTEXT_COURSE, $defaults)) {
-                $roles = get_archetype_roles($archetype);
-                foreach ($roles as $role) {
-                    $expected[$role->id] = $role;
-                }
-            }
+        foreach (get_roles_for_contextlevels(CONTEXT_COURSE) as $roleid) {
+            $expected[$roleid] = $roleid;
         }
 
         $roles = get_default_enrol_roles($coursecontext);
@@ -2686,7 +2690,7 @@ class core_accesslib_testcase extends advanced_testcase {
         $testcourses = array();
         $testpages = array();
         $testblocks = array();
-        $allroles = $DB->get_records_menu('role', array(), 'id', 'archetype, id');
+        $allroles = $DB->get_records_menu('role', array(), 'id', 'shortname, id');
 
         $systemcontext = context_system::instance();
         $frontpagecontext = context_course::instance(SITEID);
@@ -3608,8 +3612,8 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
 
         $froncontext = context_course::instance($SITE->id);
-        $student = $DB->get_record('role', array('archetype'=>'student'));
-        $teacher = $DB->get_record('role', array('archetype'=>'teacher'));
+        $student = $DB->get_record('role', array('shortname'=>'student'));
+        $teacher = $DB->get_record('role', array('shortname'=>'teacher'));
 
         $existingcaps = $DB->get_records('capabilities', array(), 'id', 'name, captype, contextlevel, component, riskbitmask');
 
@@ -3808,10 +3812,6 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->assertFalse(array_key_exists($guest->id, $users));
     }
 
-    /**
-     * Test updating of role capabilities during upgrade
-     * @return void
-     */
     public function test_get_with_capability_sql() {
         global $DB;
 
@@ -3861,6 +3861,73 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->assertFalse(array_key_exists($admin->id, $users));
         $this->assertTrue(array_key_exists($student->id, $users));
         $this->assertFalse(array_key_exists($guest->id, $users));
+    }
+
+
+    /**
+     * Get the test cases for {@link test_get_with_capability_join_when_overrides_present()}.
+     *
+     * The particular capabilties used here do not really matter. What is important is
+     * that they are capabilities which the Student roles has by default, but the
+     * authenticated suser role does not.
+     *
+     * @return array
+     */
+    public function get_get_with_capability_join_override_cases() {
+        return [
+                'no overrides' => [true, []],
+                'one override' => [true, ['moodle/course:viewscales']],
+                'both overrides' => [false, ['moodle/course:viewscales', 'moodle/question:flag']],
+        ];
+    }
+
+    /**
+     * Test get_with_capability_join.
+     *
+     * @dataProvider get_get_with_capability_join_override_cases
+     *
+     * @param bool $studentshouldbereturned whether, with this combination of capabilities, the student should be in the results.
+     * @param array $capabilitiestoprevent capabilities to override to prevent in the course context.
+     */
+    public function test_get_with_capability_join_when_overrides_present(
+            bool $studentshouldbereturned, array $capabilitiestoprevent) {
+        global $DB;
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+
+        // Create a course.
+        $category = $generator->create_category();
+        $course = $generator->create_course(['category' => $category->id]);
+
+        // Create a user.
+        $student = $generator->create_user();
+        $studentrole = $DB->get_record('role', ['shortname' => 'student'], '*', MUST_EXIST);
+        $generator->enrol_user($student->id, $course->id, $studentrole->id);
+
+        // This test assumes that by default the student roles has the two
+        // capabilities. Check this now in case the role definitions are every changed.
+        $coursecontext = context_course::instance($course->id);
+        $this->assertTrue(has_capability('moodle/course:viewscales', $coursecontext, $student));
+        $this->assertTrue(has_capability('moodle/question:flag', $coursecontext, $student));
+
+        // We test cases where there are a varying number of prevent overrides.
+        foreach ($capabilitiestoprevent as $capability) {
+            role_change_permission($studentrole->id, $coursecontext, $capability, CAP_PREVENT);
+        }
+
+        // So now, assemble our query using the method under test, and verify that it returns the student.
+        $sqljoin = get_with_capability_join($coursecontext,
+                ['moodle/course:viewscales', 'moodle/question:flag'], 'u.id');
+
+        $users = $DB->get_records_sql("SELECT u.*
+                  FROM {user} u
+                       {$sqljoin->joins}
+                 WHERE {$sqljoin->wheres}", $sqljoin->params);
+        if ($studentshouldbereturned) {
+            $this->assertEquals([$student->id], array_keys($users));
+        } else {
+            $this->assertEmpty($users);
+        }
     }
 
     /**
@@ -3998,6 +4065,204 @@ class core_accesslib_testcase extends advanced_testcase {
         set_config('profileroles', "");
         $this->setUser($user2);
         $this->assertEquals($expectedteacher, get_profile_roles($coursecontext));
+    }
+
+    /**
+     * Data provider for is_parent_of context checks.
+     *
+     * @return  array
+     */
+    public function is_parent_of_provider(): array {
+        $provideboth = function(string $desc, string $contextpath, string $testpath, bool $expected): array {
+            return [
+                "includeself: true; {$desc}" => [
+                    $contextpath,
+                    $testpath,
+                    true,
+                    $expected,
+                ],
+                "includeself: false; {$desc}" => [
+                    $contextpath,
+                    $testpath,
+                    false,
+                    $expected,
+                ],
+            ];
+        };
+
+        return array_merge(
+            [
+                'includeself: true, testing self' => [
+                    '/1/4/17/291/1001/17105',
+                    '/1/4/17/291/1001/17105',
+                    true,
+                    true,
+                ],
+                'includeself: false, testing self' => [
+                    '/1/4/17/291/1001/17105',
+                    '/1/4/17/291/1001/17105',
+                    false,
+                    false,
+                ],
+            ],
+            $provideboth(
+                'testing parent',
+                '/1/4/17/291/1001/17105',
+                '/1/4/17/291/1001',
+                false
+            ),
+            $provideboth(
+                'testing child',
+                '/1/4/17/291/1001',
+                '/1/4/17/291/1001/17105',
+                true
+            ),
+            $provideboth(
+                'testing grandchild',
+                '/1',
+                '/1/4/17/291/1001/17105',
+                true
+            )
+        );
+    }
+
+    /**
+     * Ensure that the is_parent_of() function works as anticipated.
+     *
+     * @dataProvider is_parent_of_provider
+     * @param   string $contextpath The path of the context being compared with
+     * @param   string $testpath The path of the context being compared
+     * @param   bool $testself Whether to check the current context
+     * @param   bool $expected The expected result
+     */
+    public function test_is_parent_of(string $contextpath, string $testpath, bool $testself, bool $expected): void {
+        $context = $this->getMockBuilder(\context::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'get_url',
+                'get_capabilities',
+            ])
+            ->getMock();
+
+        $rcp = new ReflectionProperty($context, '_path');
+        $rcp->setAccessible(true);
+        $rcp->setValue($context, $contextpath);
+
+        $comparisoncontext = $this->getMockBuilder(\context::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'get_url',
+                'get_capabilities',
+            ])
+            ->getMock();
+
+        $rcp = new ReflectionProperty($comparisoncontext, '_path');
+        $rcp->setAccessible(true);
+        $rcp->setValue($comparisoncontext, $testpath);
+
+        $this->assertEquals($expected, $context->is_parent_of($comparisoncontext, $testself));
+    }
+
+    /**
+     * Data provider for is_child_of context checks.
+     *
+     * @return  array
+     */
+    public function is_child_of_provider(): array {
+        $provideboth = function(string $desc, string $contextpath, string $testpath, bool $expected): array {
+            return [
+                "includeself: true; {$desc}" => [
+                    $contextpath,
+                    $testpath,
+                    true,
+                    $expected,
+                ],
+                "includeself: false; {$desc}" => [
+                    $contextpath,
+                    $testpath,
+                    false,
+                    $expected,
+                ],
+            ];
+        };
+
+        return array_merge(
+            [
+                'includeself: true, testing self' => [
+                    '/1/4/17/291/1001/17105',
+                    '/1/4/17/291/1001/17105',
+                    true,
+                    true,
+                ],
+                'includeself: false, testing self' => [
+                    '/1/4/17/291/1001/17105',
+                    '/1/4/17/291/1001/17105',
+                    false,
+                    false,
+                ],
+            ],
+            $provideboth(
+                'testing child',
+                '/1/4/17/291/1001/17105',
+                '/1/4/17/291/1001',
+                true
+            ),
+            $provideboth(
+                'testing parent',
+                '/1/4/17/291/1001',
+                '/1/4/17/291/1001/17105',
+                false
+            ),
+            $provideboth(
+                'testing grandchild',
+                '/1/4/17/291/1001/17105',
+                '/1',
+                true
+            ),
+            $provideboth(
+                'testing grandparent',
+                '/1',
+                '/1/4/17/291/1001/17105',
+                false
+            )
+        );
+    }
+
+    /**
+     * Ensure that the is_child_of() function works as anticipated.
+     *
+     * @dataProvider is_child_of_provider
+     * @param   string $contextpath The path of the context being compared with
+     * @param   string $testpath The path of the context being compared
+     * @param   bool $testself Whether to check the current context
+     * @param   bool $expected The expected result
+     */
+    public function test_is_child_of(string $contextpath, string $testpath, bool $testself, bool $expected): void {
+        $context = $this->getMockBuilder(\context::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'get_url',
+                'get_capabilities',
+            ])
+            ->getMock();
+
+        $rcp = new ReflectionProperty($context, '_path');
+        $rcp->setAccessible(true);
+        $rcp->setValue($context, $contextpath);
+
+        $comparisoncontext = $this->getMockBuilder(\context::class)
+            ->disableOriginalConstructor()
+            ->setMethods([
+                'get_url',
+                'get_capabilities',
+            ])
+            ->getMock();
+
+        $rcp = new ReflectionProperty($comparisoncontext, '_path');
+        $rcp->setAccessible(true);
+        $rcp->setValue($comparisoncontext, $testpath);
+
+        $this->assertEquals($expected, $context->is_child_of($comparisoncontext, $testself));
     }
 
     /**

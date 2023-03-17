@@ -361,6 +361,101 @@ class mod_forum_maildigest_testcase extends advanced_testcase {
     }
 
     /**
+     * Send digests to a user who cannot view fullnames
+     */
+    public function test_cron_digest_view_fullnames_off() {
+        global $DB, $CFG;
+
+        $CFG->fullnamedisplay = 'lastname';
+        $this->resetAfterTest(true);
+
+        // Set up a basic user enrolled in a course.
+        $userhelper = $this->helper_setup_user_in_course();
+        $user = $userhelper->user;
+        $course1 = $userhelper->courses->course1;
+        $forum1 = $userhelper->forums->forum1;
+        $posts = [];
+
+        // Add 1 discussions to forum 1.
+        list($discussion, $post) = $this->helper_post_to_forum($forum1, $user, ['mailnow' => 1]);
+        $posts[] = $post;
+
+        // Set the tested user's default maildigest setting.
+        $DB->set_field('user', 'maildigest', 1, array('id' => $user->id));
+
+        // No digests mails should be sent, but 1 forum mails will be sent.
+        $expect = [
+            (object) [
+                'userid' => $user->id,
+                'messages' => 0,
+                'digests' => 1,
+            ],
+        ];
+        $this->queue_tasks_and_assert($expect);
+        $this->send_digests_and_assert($user, $posts);
+
+        // The user does not, by default, have permission to view the fullname.
+        $messagecontent = $this->messagesink->get_messages()[0]->fullmessage;
+
+        // Assert that the expected name is present (lastname only).
+        $this->assertContains(fullname($user, false), $messagecontent);
+
+        // Assert that the full name is not present (firstname lastname only).
+        $this->assertNotContains(fullname($user, true), $messagecontent);
+    }
+
+    /**
+     * Send digests to a user who can view fullnames.
+     */
+    public function test_cron_digest_view_fullnames_on() {
+        global $DB, $CFG;
+
+        $CFG->fullnamedisplay = 'lastname';
+        $this->resetAfterTest(true);
+
+        // Set up a basic user enrolled in a course.
+        $userhelper = $this->helper_setup_user_in_course();
+        $user = $userhelper->user;
+        $course1 = $userhelper->courses->course1;
+        $forum1 = $userhelper->forums->forum1;
+        $posts = [];
+        assign_capability(
+            'moodle/site:viewfullnames',
+            CAP_ALLOW,
+            $DB->get_field('role', 'id', ['shortname' => 'student']),
+            \context_course::instance($course1->id)
+        );
+
+        // Add 1 discussions to forum 1.
+        list($discussion, $post) = $this->helper_post_to_forum($forum1, $user, ['mailnow' => 1]);
+        $posts[] = $post;
+
+        // Set the tested user's default maildigest setting.
+        $DB->set_field('user', 'maildigest', 1, array('id' => $user->id));
+
+        // No digests mails should be sent, but 1 forum mails will be sent.
+        $expect = [
+            (object) [
+                'userid' => $user->id,
+                'messages' => 0,
+                'digests' => 1,
+            ],
+        ];
+        $this->queue_tasks_and_assert($expect);
+        $this->send_digests_and_assert($user, $posts);
+
+        // The user does not, by default, have permission to view the fullname.
+        // However we have given the user that capability so we expect to see both firstname and lastname.
+        $messagecontent = $this->messagesink->get_messages()[0]->fullmessage;
+
+        // Assert that the expected name is present (lastname only).
+        $this->assertContains(fullname($user, false), $messagecontent);
+
+        // Assert that the full name is also present (firstname lastname only).
+        $this->assertContains(fullname($user, true), $messagecontent);
+    }
+
+    /**
      * Sends several notifications to one user as:
      * * daily digests coming from the per-forum setting; and
      * * single e-mails from the profile setting.
@@ -517,5 +612,86 @@ class mod_forum_maildigest_testcase extends advanced_testcase {
         $this->queue_tasks_and_assert($expect);
 
         $this->send_digests_and_assert($user, $fulldigests, $shortdigests);
+    }
+
+    /**
+     * The digest being in the past is queued til the next day.
+     */
+    public function test_cron_digest_previous_day() {
+        global $DB, $CFG;
+
+        $this->resetAfterTest(true);
+
+        // Set up a basic user enrolled in a course.
+        $userhelper = $this->helper_setup_user_in_course();
+        $user = $userhelper->user;
+        $course1 = $userhelper->courses->course1;
+        $forum1 = $userhelper->forums->forum1;
+        $forum2 = $userhelper->forums->forum2;
+        $fulldigests = [];
+        $shortdigests = [];
+
+        // Add 1 discussions to forum 1.
+        list($discussion, $post) = $this->helper_post_to_forum($forum1, $user, ['mailnow' => 1]);
+        $fulldigests[] = $post;
+
+        // Set the tested user's default maildigest setting.
+        $DB->set_field('user', 'maildigest', 1, array('id' => $user->id));
+
+        // Set the digest time to midnight.
+        $CFG->digestmailtime = 0;
+        // One digest e-mail should be sent, and no individual notifications.
+        $expect = [
+            (object) [
+                'userid' => $user->id,
+                'digests' => 1,
+            ],
+        ];
+        $this->queue_tasks_and_assert($expect);
+
+        $tasks = $DB->get_records('task_adhoc');
+        $task = reset($tasks);
+        $this->assertGreaterThanOrEqual(time(), $task->nextruntime);
+    }
+
+    /**
+     * The digest being in the past is queued til the next day.
+     */
+    public function test_cron_digest_same_day() {
+        global $DB, $CFG;
+
+        $this->resetAfterTest(true);
+
+        // Set up a basic user enrolled in a course.
+        $userhelper = $this->helper_setup_user_in_course();
+        $user = $userhelper->user;
+        $course1 = $userhelper->courses->course1;
+        $forum1 = $userhelper->forums->forum1;
+        $forum2 = $userhelper->forums->forum2;
+        $fulldigests = [];
+        $shortdigests = [];
+
+        // Add 1 discussions to forum 1.
+        list($discussion, $post) = $this->helper_post_to_forum($forum1, $user, ['mailnow' => 1]);
+        $fulldigests[] = $post;
+
+        // Set the tested user's default maildigest setting.
+        $DB->set_field('user', 'maildigest', 1, array('id' => $user->id));
+
+        // Set the digest time to the future (magic, shouldn't work).
+        $CFG->digestmailtime = 25;
+        // One digest e-mail should be sent, and no individual notifications.
+        $expect = [
+            (object) [
+                'userid' => $user->id,
+                'digests' => 1,
+            ],
+        ];
+        $this->queue_tasks_and_assert($expect);
+
+        $tasks = $DB->get_records('task_adhoc');
+        $task = reset($tasks);
+        $digesttime = usergetmidnight(time(), \core_date::get_server_timezone()) + ($CFG->digestmailtime * 3600);
+        $this->assertLessThanOrEqual($digesttime, $task->nextruntime);
     }
 }

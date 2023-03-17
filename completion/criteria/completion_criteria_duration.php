@@ -221,23 +221,19 @@ class completion_criteria_duration extends completion_criteria {
                 {user} u
             INNER JOIN
                 {user_enrolments} ue
-            ON ue.userid = u.id
+             ON ue.userid = u.id
             INNER JOIN
                 {enrol} e
-            ON e.id = ue.enrolid
+             ON e.id = ue.enrolid
             INNER JOIN
                 {course} c
-            ON c.id = e.courseid
-            INNER JOIN
-                {course_categories} cat
-                ON cat.id = c.category 
-                AND split_part(cat.path, \'/\', 2) in (\'46\',\'134\',\'130\',\'102\')
+             ON c.id = e.courseid
             INNER JOIN
                 {course_completion_criteria} cr
-            ON c.id = cr.course
+             ON c.id = cr.course
             LEFT JOIN
                 {course_completion_crit_compl} cc
-            ON cc.criteriaid = cr.id
+             ON cc.criteriaid = cr.id
             AND cc.userid = u.id
             WHERE
                 cr.criteriatype = '.COMPLETION_CRITERIA_TYPE_DURATION.'
@@ -246,8 +242,9 @@ class completion_criteria_duration extends completion_criteria {
             AND
             (
                 ue.timestart > 0 AND ue.timestart + cr.enrolperiod < ?
-            OR ue.timecreated > 0 AND ue.timecreated + cr.enrolperiod < ?
-            )';
+             OR ue.timecreated > 0 AND ue.timecreated + cr.enrolperiod < ?
+            )
+        ';
 
         // Loop through completions, and mark as complete
         $now = time();

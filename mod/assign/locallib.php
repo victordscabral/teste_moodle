@@ -176,6 +176,9 @@ class assign {
      */
     private $mostrecentteamsubmission = null;
 
+    /** @var array Array of error messages encountered during the execution of assignment related operations. */
+    private $errors = array();
+
     /**
      * Constructor for the base assign class.
      *
@@ -309,6 +312,24 @@ class assign {
      */
     public function set_course(stdClass $course) {
         $this->course = $course;
+    }
+
+    /**
+     * Set error message.
+     *
+     * @param string $message The error message
+     */
+    protected function set_error_message(string $message) {
+        $this->errors[] = $message;
+    }
+
+    /**
+     * Get error messages.
+     *
+     * @return array The array of error messages
+     */
+    protected function get_error_messages(): array {
+        return $this->errors;
     }
 
     /**
@@ -594,7 +615,14 @@ class assign {
         // Now show the right view page.
         if ($action == 'redirect') {
             $nextpageurl = new moodle_url('/mod/assign/view.php', $nextpageparams);
-            redirect($nextpageurl);
+            $messages = '';
+            $messagetype = \core\output\notification::NOTIFY_INFO;
+            $errors = $this->get_error_messages();
+            if (!empty($errors)) {
+                $messages = html_writer::alist($errors, ['class' => 'mb-1 mt-1']);
+                $messagetype = \core\output\notification::NOTIFY_ERROR;
+            }
+            redirect($nextpageurl, $messages, null, $messagetype);
             return;
         } else if ($action == 'savegradingresult') {
             $message = get_string('gradingchangessaved', 'assign');
@@ -2467,15 +2495,15 @@ class assign {
         // Only ever send a max of one days worth of updates.
         $yesterday = time() - (24 * 3600);
         $timenow   = time();
-        $lastcron = $DB->get_field('modules', 'lastcron', array('name' => 'assign'));
+        $lastruntime = $DB->get_field('task_scheduled', 'lastruntime', array('component' => 'mod_assign'));
 
         // Collect all submissions that require mailing.
         // Submissions are included if all are true:
         //   - The assignment is visible in the gradebook.
         //   - No previous notification has been sent.
         //   - The grader was a real user, not an automated process.
-        //   - If marking workflow is not enabled, the grade was updated in the past 24 hours, or
-        //     if marking workflow is enabled, the workflow state is at 'released'.
+        //   - The grade was updated in the past 24 hours.
+        //   - If marking workflow is enabled, the workflow state is at 'released'.
         $sql = "SELECT g.id as gradeid, a.course, a.name, a.blindmarking, a.revealidentities, a.hidegrader,
                        g.*, g.timemodified as lastmodified, cm.id as cmid, um.id as recordid
                  FROM {assign} a
@@ -2485,9 +2513,9 @@ class assign {
                  JOIN {modules} md ON md.id = cm.module AND md.name = 'assign'
                  JOIN {grade_items} gri ON gri.iteminstance = a.id AND gri.courseid = a.course AND gri.itemmodule = md.name
             LEFT JOIN {assign_user_mapping} um ON g.id = um.userid AND um.assignment = a.id
-                 WHERE ((a.markingworkflow = 0 AND g.timemodified >= :yesterday AND g.timemodified <= :today) OR
-                        (a.markingworkflow = 1 AND uf.workflowstate = :wfreleased)) AND
-                       g.grader > 0 AND uf.mailed = 0 AND gri.hidden = 0
+                 WHERE (a.markingworkflow = 0 OR (a.markingworkflow = 1 AND uf.workflowstate = :wfreleased)) AND
+                       g.grader > 0 AND uf.mailed = 0 AND gri.hidden = 0 AND
+                       g.timemodified >= :yesterday AND g.timemodified <= :today
               ORDER BY a.course, cm.id";
 
         $params = array(
@@ -2639,10 +2667,10 @@ class assign {
         $sql = 'SELECT id
                     FROM {assign}
                     WHERE
-                        allowsubmissionsfromdate >= :lastcron AND
+                        allowsubmissionsfromdate >= :lastruntime AND
                         allowsubmissionsfromdate <= :timenow AND
                         alwaysshowdescription = 0';
-        $params = array('lastcron' => $lastcron, 'timenow' => $timenow);
+        $params = array('lastruntime' => $lastruntime, 'timenow' => $timenow);
         $newlyavailable = $DB->get_records_sql($sql, $params);
         foreach ($newlyavailable as $record) {
             $cm = get_coursemodule_from_instance('assign', $record->id, 0, false, MUST_EXIST);
@@ -3348,11 +3376,12 @@ class assign {
                                                       $this->show_intro(),
                                                       $this->get_course_module()->id,
                                                       get_string('quickgradingresult', 'assign')));
+        $gradingerror = in_array($message, $this->get_error_messages());
         $lastpage = optional_param('lastpage', null, PARAM_INT);
         $gradingresult = new assign_gradingmessage(get_string('quickgradingresult', 'assign'),
                                                    $message,
                                                    $this->get_course_module()->id,
-                                                   false,
+                                                   $gradingerror,
                                                    $lastpage);
         $o .= $this->get_renderer()->render($gradingresult);
         $o .= $this->view_footer();
@@ -3517,7 +3546,8 @@ class assign {
                     $prefix = str_replace('_', ' ', $groupname . get_string('participant', 'assign'));
                     $prefix = clean_filename($prefix . '_' . $this->get_uniqueid_for_user($userid));
                 } else {
-                    $prefix = str_replace('_', ' ', $groupname . fullname($student));
+                    $fullname = fullname($student, has_capability('moodle/site:viewfullnames', $this->get_context()));
+                    $prefix = str_replace('_', ' ', $groupname . $fullname);
                     $prefix = clean_filename($prefix . '_' . $this->get_uniqueid_for_user($userid));
                 }
 
@@ -5540,7 +5570,7 @@ class assign {
                                                   $this->is_any_submission_plugin_enabled(),
                                                   $this->count_submissions_with_status($submitted, $activitygroup),
                                                   $instance->cutoffdate,
-                                                  $instance->duedate,
+                                                  $this->get_duedate($activitygroup),
                                                   $this->get_course_module()->id,
                                                   $this->count_submissions_need_grading($activitygroup),
                                                   $instance->teamsubmission,
@@ -5556,7 +5586,7 @@ class assign {
                                                   $this->is_any_submission_plugin_enabled(),
                                                   $this->count_submissions_with_status($submitted, $activitygroup),
                                                   $instance->cutoffdate,
-                                                  $instance->duedate,
+                                                  $this->get_duedate($activitygroup),
                                                   $this->get_course_module()->id,
                                                   $this->count_submissions_need_grading($activitygroup),
                                                   $instance->teamsubmission,
@@ -5566,6 +5596,29 @@ class assign {
         }
 
         return $summary;
+    }
+
+    /**
+     * Return group override duedate.
+     *
+     * @param int $activitygroup Activity active group
+     * @return int $duedate
+     */
+    private function  get_duedate($activitygroup = null) {
+        global $DB;
+
+        if ($activitygroup === null) {
+            $activitygroup = groups_get_activity_group($this->get_course_module());
+        }
+
+        if ($this->can_view_grades()) {
+            $params = array('groupid' => $activitygroup, 'assignid' => $this->get_instance()->id);
+            $groupoverride = $DB->get_record('assign_overrides', $params);
+            if (!empty($groupoverride->duedate)) {
+                return $groupoverride->duedate;
+            }
+        }
+        return $this->get_instance()->duedate;
     }
 
     /**
@@ -6660,7 +6713,9 @@ class assign {
         $gradingmanager = get_grading_manager($this->get_context(), 'mod_assign', 'submissions');
         $controller = $gradingmanager->get_active_controller();
         if (!empty($controller)) {
-            return get_string('errorquickgradingvsadvancedgrading', 'assign');
+            $message = get_string('errorquickgradingvsadvancedgrading', 'assign');
+            $this->set_error_message($message);
+            return $message;
         }
 
         $users = array();
@@ -6694,7 +6749,9 @@ class assign {
         }
 
         if (empty($users)) {
-            return get_string('nousersselected', 'assign');
+            $message = get_string('nousersselected', 'assign');
+            $this->set_error_message($message);
+            return $message;
         }
 
         list($userids, $params) = $DB->get_in_or_equal(array_keys($users), SQL_PARAMS_NAMED);
@@ -6748,7 +6805,9 @@ class assign {
                     // handle hidden columns.
                     if ($plugin->is_quickgrading_modified($modified->userid, $grade)) {
                         if ((int)$current->lastmodified > (int)$modified->lastmodified) {
-                            return get_string('errorrecordmodified', 'assign');
+                            $message = get_string('errorrecordmodified', 'assign');
+                            $this->set_error_message($message);
+                            return $message;
                         } else {
                             $modifiedusers[$modified->userid] = $modified;
                             continue;
@@ -6783,7 +6842,9 @@ class assign {
                 $badattempt = (int)$current->attemptnumber != (int)$modified->attemptnumber;
                 if ($badmodified || $badattempt) {
                     // Error - record has been modified since viewing the page.
-                    return get_string('errorrecordmodified', 'assign');
+                    $message = get_string('errorrecordmodified', 'assign');
+                    $this->set_error_message($message);
+                    return $message;
                 } else {
                     $modifiedusers[$modified->userid] = $modified;
                 }
@@ -7585,6 +7646,14 @@ class assign {
             $options = array('' => get_string('markingworkflowstatenotmarked', 'assign')) + $states;
             $mform->addElement('select', 'workflowstate', get_string('markingworkflowstate', 'assign'), $options);
             $mform->addHelpButton('workflowstate', 'markingworkflowstate', 'assign');
+            $gradingstatus = $this->get_grading_status($userid);
+            if ($gradingstatus != ASSIGN_MARKING_WORKFLOW_STATE_RELEASED) {
+                if ($grade->grade && $grade->grade != -1) {
+                    $assigngradestring = html_writer::span(grade_floatval($grade->grade), 'currentgrade');
+                    $label = get_string('currentassigngrade', 'assign');
+                    $mform->addElement('static', 'currentassigngrade', $label, $assigngradestring);
+                }
+            }
         }
 
         if ($this->get_instance()->markingworkflow &&
@@ -7606,6 +7675,7 @@ class assign {
             $mform->disabledIf('allocatedmarker', 'workflowstate', 'eq', ASSIGN_MARKING_WORKFLOW_STATE_READYFORRELEASE);
             $mform->disabledIf('allocatedmarker', 'workflowstate', 'eq', ASSIGN_MARKING_WORKFLOW_STATE_RELEASED);
         }
+
         $gradestring = '<span class="currentgrade">' . $gradestring . '</span>';
         $mform->addElement('static', 'currentgrade', get_string('currentgrade', 'assign'), $gradestring);
 
@@ -7849,7 +7919,10 @@ class assign {
         global $USER;
 
         if (!$this->can_edit_submission($userid, $USER->id)) {
-            print_error('nopermission');
+            $user = core_user::get_user($userid);
+            $message = get_string('usersubmissioncannotberemoved', 'assign', fullname($user));
+            $this->set_error_message($message);
+            return false;
         }
 
         if ($this->get_instance()->teamsubmission) {
@@ -8031,14 +8104,14 @@ class assign {
 
                 // Will not apply update if user does not have permission to assign this workflow state.
                 if (!$gradingdisabled && $this->update_user_flags($flags)) {
-                    if ($state == ASSIGN_MARKING_WORKFLOW_STATE_RELEASED) {
-                        // Update Gradebook.
-                        $assign = clone $this->get_instance();
-                        $assign->cmidnumber = $this->get_course_module()->idnumber;
-                        // Set assign gradebook feedback plugin status.
-                        $assign->gradefeedbackenabled = $this->is_gradebook_feedback_enabled();
-                        assign_update_grades($assign, $userid);
-                    }
+                    // Update Gradebook.
+                    $grade = $this->get_user_grade($userid, true);
+                    $this->update_grade($grade);
+                    $assign = clone $this->get_instance();
+                    $assign->cmidnumber = $this->get_course_module()->idnumber;
+                    // Set assign gradebook feedback plugin status.
+                    $assign->gradefeedbackenabled = $this->is_gradebook_feedback_enabled();
+                    assign_update_grades($assign, $userid);
 
                     $user = $DB->get_record('user', array('id' => $userid), '*', MUST_EXIST);
                     \mod_assign\event\workflow_state_updated::create_from_user($this, $user, $state)->trigger();

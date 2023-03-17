@@ -71,6 +71,9 @@ class core_backup_external extends external_api {
         require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
         require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 
+        // Release session lock.
+        \core\session\manager::write_close();
+
         // Parameter validation.
         self::validate_parameters(
                 self::get_async_backup_progress_parameters(),
@@ -88,7 +91,6 @@ class core_backup_external extends external_api {
             require_capability('moodle/backup:backupactivity', $context);
         } else {
             require_capability('moodle/backup:backupcourse', $context);
-            $instanceid = $course->id;
         }
 
         $results = array();
@@ -142,6 +144,9 @@ class core_backup_external extends external_api {
      * @since Moodle 3.7
      */
     public static function get_async_backup_links_backup($filename, $contextid) {
+        // Release session lock.
+        \core\session\manager::write_close();
+
         // Parameter validation.
         self::validate_parameters(
                 self::get_async_backup_links_backup_parameters(),
@@ -206,6 +211,9 @@ class core_backup_external extends external_api {
      * @since Moodle 3.7
      */
     public static function get_async_backup_links_restore($backupid, $contextid) {
+        // Release session lock.
+        \core\session\manager::write_close();
+
         // Parameter validation.
         self::validate_parameters(
                 self::get_async_backup_links_restore_parameters(),

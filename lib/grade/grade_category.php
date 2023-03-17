@@ -285,6 +285,9 @@ class grade_category extends grade_object {
      * @return bool success
      */
     public function delete($source=null) {
+        global $DB;
+
+        $transaction = $DB->start_delegated_transaction();
         $grade_item = $this->load_grade_item();
 
         if ($this->is_course_category()) {
@@ -334,7 +337,10 @@ class grade_category extends grade_object {
         $grade_item->delete($source);
 
         // delete category itself
-        return parent::delete($source);
+        $success = parent::delete($source);
+
+        $transaction->allow_commit();
+        return $success;
     }
 
     /**
@@ -2589,12 +2595,13 @@ class grade_category extends grade_object {
      */
     public function set_hidden($hidden, $cascade=false) {
         $this->load_grade_item();
-        //this hides the associated grade item (the course total)
-        $this->grade_item->set_hidden($hidden, $cascade);
         //this hides the category itself and everything it contains
         parent::set_hidden($hidden, $cascade);
 
         if ($cascade) {
+
+            // This hides the associated grade item (the course/category total).
+            $this->grade_item->set_hidden($hidden, $cascade);
 
             if ($children = grade_item::fetch_all(array('categoryid'=>$this->id))) {
 
@@ -2619,9 +2626,7 @@ class grade_category extends grade_object {
             if ($category_array && array_key_exists($this->parent, $category_array)) {
                 $category = $category_array[$this->parent];
                 //call set_hidden on the category regardless of whether it is hidden as its parent might be hidden
-                //if($category->is_hidden()) {
-                    $category->set_hidden($hidden, false);
-                //}
+                $category->set_hidden($hidden, false);
             }
         }
     }

@@ -120,12 +120,16 @@ class renderer_base {
                              'userdate' => array($userdatehelper, 'transform'),
                          );
 
-            $this->mustache = new Mustache_Engine(array(
+            $this->mustache = new \core\output\mustache_engine(array(
                 'cache' => $cachedir,
                 'escape' => 's',
                 'loader' => $loader,
                 'helpers' => $helpers,
-                'pragmas' => [Mustache_Engine::PRAGMA_BLOCKS]));
+                'pragmas' => [Mustache_Engine::PRAGMA_BLOCKS],
+                // Don't allow the JavaScript helper to be executed from within another
+                // helper. If it's allowed it can be used by users to inject malicious
+                // JS into the page.
+                'blacklistednestedhelpers' => ['js']));
 
         }
 
@@ -1739,7 +1743,7 @@ class core_renderer extends renderer_base {
         $id = !empty($bc->attributes['id']) ? $bc->attributes['id'] : uniqid('block-');
         $context = new stdClass();
         $context->skipid = $bc->skipid;
-        $context->blockinstanceid = $bc->blockinstanceid;
+        $context->blockinstanceid = $bc->blockinstanceid ?: uniqid('fakeid-');
         $context->dockable = $bc->dockable;
         $context->id = $id;
         $context->hidden = $bc->collapsible == block_contents::HIDDEN;
@@ -2518,7 +2522,6 @@ class core_renderer extends renderer_base {
 
         $attributes = array('src' => $src, 'class' => $class, 'width' => $size, 'height' => $size);
         if (!$userpicture->visibletoscreenreaders) {
-            $attributes['role'] = 'presentation';
             $alt = '';
             $attributes['aria-hidden'] = 'true';
         }
@@ -2799,8 +2802,8 @@ EOD;
             $output .= $this->header();
         }
 
-        $message = '<p class="errormessage">' . $message . '</p>'.
-                '<p class="errorcode"><a href="' . $moreinfourl . '">' .
+        $message = '<p class="errormessage">' . s($message) . '</p>'.
+                '<p class="errorcode"><a href="' . s($moreinfourl) . '">' .
                 get_string('moreinformation') . '</a></p>';
         if (empty($CFG->rolesactive)) {
             $message .= '<p class="errormessage">' . get_string('installproblem', 'error') . '</p>';
@@ -3205,7 +3208,7 @@ EOD;
             'size' => 13, 'tabindex' => -1, 'id' => 'id_q_' . $id, 'class' => 'form-control');
 
         $contents = html_writer::tag('label', get_string('enteryoursearchquery', 'search'),
-            array('for' => 'id_q_' . $id, 'class' => 'accesshide')) . html_writer::tag('input', '', $inputattrs);
+            array('for' => 'id_q_' . $id, 'class' => 'accesshide')) . html_writer::empty_tag('input', $inputattrs);
         if ($this->page->context && $this->page->context->contextlevel !== CONTEXT_SYSTEM) {
             $contents .= html_writer::empty_tag('input', ['type' => 'hidden',
                     'name' => 'context', 'value' => $this->page->context->id]);
@@ -4031,10 +4034,10 @@ EOD;
     }
 
     /**
-     * Returns the URL for the favicon.
+     * Returns the moodle_url for the favicon.
      *
      * @since Moodle 2.5.1 2.6
-     * @return string The favicon URL
+     * @return moodle_url The moodle_url for the favicon
      */
     public function favicon() {
         return $this->image_url('favicon', 'theme');

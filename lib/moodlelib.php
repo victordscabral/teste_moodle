@@ -365,6 +365,10 @@ define('PAGE_COURSE_VIEW', 'course-view');
 define('GETREMOTEADDR_SKIP_HTTP_CLIENT_IP', '1');
 /** Get remote addr constant */
 define('GETREMOTEADDR_SKIP_HTTP_X_FORWARDED_FOR', '2');
+/**
+ * GETREMOTEADDR_SKIP_DEFAULT defines the default behavior remote IP address validation.
+ */
+define('GETREMOTEADDR_SKIP_DEFAULT', GETREMOTEADDR_SKIP_HTTP_X_FORWARDED_FOR|GETREMOTEADDR_SKIP_HTTP_CLIENT_IP);
 
 // Blog access level constant declaration.
 define ('BLOG_USER_LEVEL', 1);
@@ -491,11 +495,10 @@ define('HOMEPAGE_USER', 2);
  */
 define('HUB_HUBDIRECTORYURL', "https://hubdirectory.moodle.org");
 
-
 /**
- * Moodle.net url (should be moodle.net)
+ * URL of the Moodle sites registration portal.
  */
-define('HUB_MOODLEORGHUBURL', "https://moodle.net");
+defined('HUB_MOODLEORGHUBURL') || define('HUB_MOODLEORGHUBURL', 'https://stats.moodle.org');
 define('HUB_OLDMOODLEORGHUBURL', "http://hub.moodle.org");
 
 /**
@@ -1411,6 +1414,14 @@ function set_config($name, $value, $plugin=null) {
                 $config->name  = $name;
                 $config->value = $value;
                 $DB->insert_record('config', $config, false);
+            }
+            // When setting config during a Behat test (in the CLI script, not in the web browser
+            // requests), remember which ones are set so that we can clear them later.
+            if (defined('BEHAT_TEST')) {
+                if (!property_exists($CFG, 'behat_cli_added_config')) {
+                    $CFG->behat_cli_added_config = [];
+                }
+                $CFG->behat_cli_added_config[$name] = true;
             }
         }
         if ($name === 'siteidentifier') {
@@ -3223,6 +3234,8 @@ function require_user_key_login($script, $instance = null, $keyvalue = null) {
         print_error('invaliduserid');
     }
 
+    core_user::require_active_user($user, true, true);
+
     // Emulate normal session.
     enrol_check_plugins($user);
     \core\session\manager::set_user($user);
@@ -3483,11 +3496,12 @@ function ismoving($courseid) {
  * Returns a persons full name
  *
  * Given an object containing all of the users name values, this function returns a string with the full name of the person.
- * The result may depend on system settings or language.  'override' will force both names to be used even if system settings
- * specify one.
+ * The result may depend on system settings or language. 'override' will force the alternativefullnameformat to be used. In
+ * English, fullname as well as alternativefullnameformat is set to 'firstname lastname' by default. But you could have
+ * fullname set to 'firstname lastname' and alternativefullnameformat set to 'firstname middlename alternatename lastname'.
  *
  * @param stdClass $user A {@link $USER} object to get full name of.
- * @param bool $override If true then the name will be firstname followed by lastname rather than adhering to fullnamedisplay.
+ * @param bool $override If true then the alternativefullnameformat format rather than fullnamedisplay format will be used.
  * @return string
  */
 function fullname($user, $override=false) {
@@ -4211,7 +4225,16 @@ function delete_user(stdClass $user) {
     // This might be slow but it is really needed - modules might do some extra cleanup!
     role_unassign_all(array('userid' => $user->id));
 
+    // Notify the competency subsystem.
+    \core_competency\api::hook_user_deleted($user->id);
+
     // Now do a brute force cleanup.
+
+    // Delete all user events and subscription events.
+    $DB->delete_records_select('event', 'userid = :userid AND subscriptionid IS NOT NULL', ['userid' => $user->id]);
+
+    // Now, delete all calendar subscription from the user.
+    $DB->delete_records('event_subscriptions', ['userid' => $user->id]);
 
     // Remove from all cohorts.
     $DB->delete_records('cohort_members', array('userid' => $user->id));
@@ -4255,7 +4278,13 @@ function delete_user(stdClass $user) {
 
     // Generate username from email address, or a fake email.
     $delemail = !empty($user->email) ? $user->email : $user->username . '.' . $user->id . '@unknownemail.invalid';
-    $delname = clean_param($delemail . "." . time(), PARAM_USERNAME);
+
+    $deltime = time();
+    $deltimelength = core_text::strlen((string) $deltime);
+
+    // Max username length is 100 chars. Select up to limit - (length of current time + 1 [period character]) from users email.
+    $delname = clean_param($delemail, PARAM_USERNAME);
+    $delname = core_text::substr($delname, 0, 100 - ($deltimelength + 1)) . ".{$deltime}";
 
     // Workaround for bulk deletes of users with the same email address.
     while ($DB->record_exists('user', array('username' => $delname))) { // No need to use mnethostid here.
@@ -4270,7 +4299,7 @@ function delete_user(stdClass $user) {
     $updateuser->email        = md5($user->username);// Store hash of username, useful importing/restoring users.
     $updateuser->idnumber     = '';                  // Clear this field to free it up.
     $updateuser->picture      = 0;
-    $updateuser->timemodified = time();
+    $updateuser->timemodified = $deltime;
 
     // Don't trigger update event, as user is being deleted.
     user_update_user($updateuser, false, false);
@@ -4374,10 +4403,15 @@ function authenticate_user_login($username, $password, $ignorelockout=false, &$f
     if (!\core\session\manager::validate_login_token($logintoken)) {
         $failurereason = AUTH_LOGIN_FAILED;
 
-        // Trigger login failed event.
-        $event = \core\event\user_login_failed::create(array('userid' => $user->id,
-                'other' => array('username' => $username, 'reason' => $failurereason)));
-        $event->trigger();
+        // Trigger login failed event (specifying the ID of the found user, if available).
+        \core\event\user_login_failed::create([
+            'userid' => ($user->id ?? 0),
+            'other' => [
+                'username' => $username,
+                'reason' => $failurereason,
+            ],
+        ])->trigger();
+
         error_log('[client '.getremoteaddr()."]  $CFG->wwwroot  Invalid Login Token:  $username  ".$_SERVER['HTTP_USER_AGENT']);
         return false;
     }
@@ -4818,16 +4852,25 @@ function get_complete_user_data($field, $value, $mnethostid = null, $throwexcept
     $field = core_text::strtolower($field);
 
     // List of case insensitive fields.
-    $caseinsensitivefields = ['username', 'email'];
+    $caseinsensitivefields = ['email'];
+
+    // Username input is forced to lowercase and should be case sensitive.
+    if ($field == 'username') {
+        $value = core_text::strtolower($value);
+    }
 
     // Build the WHERE clause for an SQL query.
     $params = array('fieldval' => $value);
 
-    // Do a case-insensitive query, if necessary.
+    // Do a case-insensitive query, if necessary. These are generally very expensive. The performance can be improved on some DBs
+    // such as MySQL by pre-filtering users with accent-insensitive subselect.
     if (in_array($field, $caseinsensitivefields)) {
         $fieldselect = $DB->sql_equal($field, ':fieldval', false);
+        $idsubselect = $DB->sql_equal($field, ':fieldval2', false, false);
+        $params['fieldval2'] = $value;
     } else {
         $fieldselect = "$field = :fieldval";
+        $idsubselect = '';
     }
     $constraints = "$fieldselect AND deleted <> 1";
 
@@ -4842,6 +4885,10 @@ function get_complete_user_data($field, $value, $mnethostid = null, $throwexcept
     if (!empty($mnethostid)) {
         $params['mnethostid'] = $mnethostid;
         $constraints .= " AND mnethostid = :mnethostid";
+    }
+
+    if ($idsubselect) {
+        $constraints .= " AND id IN (SELECT id FROM {user} WHERE {$idsubselect})";
     }
 
     // Get all the basic user data.
@@ -5223,11 +5270,14 @@ function remove_course_contents($courseid, $showfeedback = true, array $options 
     }
     unset($childcontexts);
 
-    // Remove all roles and enrolments by default.
+    // Remove roles and enrolments by default.
     if (empty($options['keep_roles_and_enrolments'])) {
         // This hack is used in restore when deleting contents of existing course.
+        // During restore, we should remove only enrolment related data that the user performing the restore has a
+        // permission to remove.
+        $userid = $options['userid'] ?? null;
+        enrol_course_delete($course, $userid);
         role_unassign_all(array('contextid' => $coursecontext->id, 'component' => ''), true);
-        enrol_course_delete($course);
         if ($showfeedback) {
             echo $OUTPUT->notification($strdeleted.get_string('type_enrol_plural', 'plugin'), 'notifysuccess');
         }
@@ -5762,7 +5812,7 @@ function get_mailer($action='get') {
         } else {
             // Use SMTP directly.
             $mailer->isSMTP();
-            if (!empty($CFG->debugsmtp)) {
+            if (!empty($CFG->debugsmtp) && (!empty($CFG->debugdeveloper))) {
                 $mailer->SMTPDebug = 3;
             }
             // Specify main and backup servers.
@@ -5888,7 +5938,8 @@ function generate_email_messageid($localpart = null) {
  * @param string $subject plain text subject line of the email
  * @param string $messagetext plain text version of the message
  * @param string $messagehtml complete html version of the message (optional)
- * @param string $attachment a file on the filesystem, either relative to $CFG->dataroot or a full path to a file in $CFG->tempdir
+ * @param string $attachment a file on the filesystem, either relative to $CFG->dataroot or a full path to a file in one of
+ *          the following directories: $CFG->cachedir, $CFG->dataroot, $CFG->dirroot, $CFG->localcachedir, $CFG->tempdir
  * @param string $attachname the name of the file (extension indicates MIME)
  * @param bool $usetrueaddress determines whether $from email address should
  *          be sent out. Will be overruled by user profile setting for maildisplay
@@ -6165,12 +6216,31 @@ function email_to_user($user, $from, $subject, $messagetext, $messagehtml = '', 
 
             // Before doing the comparison, make sure that the paths are correct (Windows uses slashes in the other direction).
             $attachpath = str_replace('\\', '/', $attachmentpath);
-            // Make sure both variables are normalised before comparing.
-            $temppath = str_replace('\\', '/', realpath($CFG->tempdir));
 
-            // If the attachment is a full path to a file in the tempdir, use it as is,
+            // Add allowed paths to an array (also check if it's not empty).
+            $allowedpaths = array_filter([
+                $CFG->cachedir,
+                $CFG->dataroot,
+                $CFG->dirroot,
+                $CFG->localcachedir,
+                $CFG->tempdir
+            ]);
+            // Set addpath to true.
+            $addpath = true;
+            // Check if attachment includes one of the allowed paths.
+            foreach ($allowedpaths as $tmpvar) {
+                // Make sure both variables are normalised before comparing.
+                $temppath = str_replace('\\', '/', realpath($tmpvar));
+                // Set addpath to false if the attachment includes one of the allowed paths.
+                if (strpos($attachpath, $temppath) === 0) {
+                    $addpath = false;
+                    break;
+                }
+            }
+
+            // If the attachment is a full path to a file in the multiple allowed paths, use it as is,
             // otherwise assume it is a relative path from the dataroot (for backwards compatibility reasons).
-            if (strpos($attachpath, $temppath) !== 0) {
+            if ($addpath == true) {
                 $attachmentpath = $CFG->dataroot . '/' . $attachmentpath;
             }
 
@@ -7027,19 +7097,10 @@ function current_language() {
  */
 function get_parent_language($lang=null) {
 
-    // Let's hack around the current language.
-    if (!empty($lang)) {
-        $oldforcelang = force_current_language($lang);
-    }
+    $parentlang = get_string_manager()->get_string('parentlanguage', 'langconfig', null, $lang);
 
-    $parentlang = get_string('parentlanguage', 'langconfig');
     if ($parentlang === 'en') {
         $parentlang = '';
-    }
-
-    // Let's hack around the current language.
-    if (!empty($lang)) {
-        force_current_language($oldforcelang);
     }
 
     return $parentlang;
@@ -8593,9 +8654,10 @@ function generate_password($maxlen=10) {
  * then it will display '5.4' instead of '5.400' or '5' instead of '5.000'.
  *
  * @param float $float The float to print
- * @param int $decimalpoints The number of decimal places to print.
+ * @param int $decimalpoints The number of decimal places to print. -1 is a special value for auto detect (full precision).
  * @param bool $localized use localized decimal separator
- * @param bool $stripzeros If true, removes final zeros after decimal point
+ * @param bool $stripzeros If true, removes final zeros after decimal point. It will be ignored and the trailing zeros after
+ *                         the decimal point are always striped if $decimalpoints is -1.
  * @return string locale float
  */
 function format_float($float, $decimalpoints=1, $localized=true, $stripzeros=false) {
@@ -8607,10 +8669,17 @@ function format_float($float, $decimalpoints=1, $localized=true, $stripzeros=fal
     } else {
         $separator = '.';
     }
+    if ($decimalpoints == -1) {
+        // The following counts the number of decimals.
+        // It is safe as both floatval() and round() functions have same behaviour when non-numeric values are provided.
+        $floatval = floatval($float);
+        for ($decimalpoints = 0; $floatval != round($float, $decimalpoints); $decimalpoints++);
+    }
+
     $result = number_format($float, $decimalpoints, $separator, '');
     if ($stripzeros) {
         // Remove zeros and final dot if not needed.
-        $result = preg_replace('~(' . preg_quote($separator) . ')?0+$~', '', $result);
+        $result = preg_replace('~(' . preg_quote($separator, '~') . ')?0+$~', '', $result);
     }
     return $result;
 }
@@ -9082,24 +9151,13 @@ function cleardoubleslashes ($path) {
  * @return bool
  */
 function remoteip_in_list($list) {
-    $inlist = false;
     $clientip = getremoteaddr(null);
 
     if (!$clientip) {
         // Ensure access on cli.
         return true;
     }
-
-    $list = explode("\n", $list);
-    foreach ($list as $line) {
-        $tokens = explode('#', $line);
-        $subnet = trim($tokens[0]);
-        if (address_in_subnet($clientip, $subnet)) {
-            $inlist = true;
-            break;
-        }
-    }
-    return $inlist;
+    return \core\ip_utils::is_ip_in_subnet_list($clientip, $list);
 }
 
 /**
@@ -9114,7 +9172,7 @@ function getremoteaddr($default='0.0.0.0') {
     if (empty($CFG->getremoteaddrconf)) {
         // This will happen, for example, before just after the upgrade, as the
         // user is redirected to the admin screen.
-        $variablestoskip = 0;
+        $variablestoskip = GETREMOTEADDR_SKIP_DEFAULT;
     } else {
         $variablestoskip = $CFG->getremoteaddrconf;
     }
@@ -9127,7 +9185,15 @@ function getremoteaddr($default='0.0.0.0') {
     if (!($variablestoskip & GETREMOTEADDR_SKIP_HTTP_X_FORWARDED_FOR)) {
         if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $forwardedaddresses = explode(",", $_SERVER['HTTP_X_FORWARDED_FOR']);
-            $address = $forwardedaddresses[0];
+
+            $forwardedaddresses = array_filter($forwardedaddresses, function($ip) {
+                global $CFG;
+                return !\core\ip_utils::is_ip_in_subnet_list($ip, $CFG->reverseproxyignore ?? '', ',');
+            });
+
+            // Multiple proxies can append values to this header including an
+            // untrusted original request header so we must only trust the last ip.
+            $address = end($forwardedaddresses);
 
             if (substr_count($address, ":") > 1) {
                 // Remove port and brackets from IPv6.
@@ -9464,7 +9530,7 @@ function get_performance_info() {
                     $mode = ' <span title="request cache">[r]</span>';
                     break;
             }
-            $html .= '<ul class="cache-definition-stats list-unstyled ml-1 mb-1 cache-mode-'.$modeclass.' card d-inline-block">';
+            $html .= '<li class="d-inline-flex"><ul class="cache-definition-stats list-unstyled ml-1 mb-1 cache-mode-'.$modeclass.' card d-inline-block">';
             $html .= '<li class="cache-definition-stats-heading p-t-1 card-header bg-dark bg-inverse font-weight-bold">' .
                 $definition . $mode.'</li>';
             $text .= "$definition {";
@@ -9487,7 +9553,7 @@ function get_performance_info() {
                     $html .= "<li class=\"cache-store-stats $cachestoreclass p-x-1\">&nbsp;</li>";
                 }
             }
-            $html .= '</ul>';
+            $html .= '</ul></li>';
             $text .= '} ';
         }
         $html .= '</ul> ';

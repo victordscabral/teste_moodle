@@ -81,6 +81,8 @@ $string['awardedtoyou'] = 'Issued to me';
 $string['awardoncron'] = 'Access to the badges was successfully enabled. Too many users can instantly earn this badge. To ensure site performance, this action will take some time to process.';
 $string['awards'] = 'Recipients';
 $string['backpackavailability'] = 'External badge verification';
+$string['backpackconnectionok'] = 'Backpack connection successfully established';
+$string['backpackconnectionnottested'] = 'Connection can not be tested for this backpack because only OBv2.0 backpacks support it.';
 $string['backpackneedsupdate'] = 'The backpack connected to this profile does not match the backpack for the site. You need to disconnect and reconnect the backpack.';
 $string['backpackavailability_help'] = 'For badge recipients to be able to prove they earned their badges from you, an external backpack service should be able to access your site and verify badges issued from it. Your site does not currently appear to be accessible, which means that badges you have already issued or will issue in the future cannot be verified.
 
@@ -111,7 +113,7 @@ $string['backpackemail_help'] = 'The email address associated with your backpack
 $string['backpackemailverificationpending'] = 'Verification pending';
 $string['backpackemailverifyemailbody'] = 'Hi,
 
-A new connection to your OpenBadges backpack has been requested from \'{$a->sitename}\' using your email address.
+A new connection to your badges backpack has been requested from \'{$a->sitename}\' using your email address.
 
 To confirm and activate the connection to your backpack, please go to
 
@@ -121,7 +123,7 @@ In most mail programs, this should appear as a blue link which you can just clic
 
 If you need help, please contact the site administrator,
 {$a->admin}';
-$string['backpackemailverifyemailsubject'] = '{$a}: OpenBadges Backpack email verification';
+$string['backpackemailverifyemailsubject'] = '{$a}: Badges backpack email verification';
 $string['backpackemailverifypending'] = 'A verification email has been sent to <strong>{$a}</strong>. Click on the verification link in the email to activate your Backpack connection.';
 $string['backpackemailverifysuccess'] = 'Thanks for verifying your email address. You are now connected to your backpack.';
 $string['backpackemailverifytokenmismatch'] = 'The token in the link you clicked does not match the stored token. Make sure you clicked the link in most recent email you received.';
@@ -176,7 +178,7 @@ $string['claimid'] = 'Claim URL';
 $string['clearsettings'] = 'Clear settings';
 $string['completionnotenabled'] = 'Course completion is not enabled for this course, so it cannot be included in badge criteria. Course completion may be enabled in the course settings.';
 $string['completioninfo'] = 'This badge was issued for completing: ';
-$string['configenablebadges'] = 'When enabled, this feature lets you create badges and award them to site users.';
+$string['configenablebadges'] = 'If enabled, this feature lets you create badges and award them to site users.';
 $string['configuremessage'] = 'Badge message';
 $string['connect'] = 'Connect';
 $string['connected'] = 'Connected';
@@ -246,7 +248,7 @@ $string['criteria_5_help'] = 'Allows a badge to be awarded to users who have com
 $string['criteria_6'] = 'Profile completion';
 $string['criteria_6_help'] = 'Allows a badge to be awarded to users for completing certain fields in their profile. You can select from default and custom profile fields that are available to users. ';
 $string['criteria_7'] = 'Awarded badges';
-$string['criteria_7_help'] = 'Allows a badge to be awarded to users based on the other badges thay have earned.';
+$string['criteria_7_help'] = 'Allows a badge to be awarded to users based on other badges they have earned.';
 $string['criteria_8'] = 'Cohort membership';
 $string['criteria_8_help'] = 'Allows a badge to be awarded to users based on cohort membership.';
 $string['criteria_9'] = 'Competencies';
@@ -536,6 +538,8 @@ $string['targetframework'] = 'Framework';
 $string['targetframework_help'] = 'The name of the external skill or standard framework.';
 $string['targetcode'] = 'Code';
 $string['targetcode_help'] = 'A unique string identifier for referencing the external skill or standard within its framework.';
+$string['testbackpack'] = 'Test backpack \'{$a}\'';
+$string['testsettings'] = 'Test settings';
 $string['type'] = 'Type';
 $string['variablesubstitution'] = 'Variable substitution in messages.';
 $string['variablesubstitution_help'] = 'In a badge message, certain variables can be inserted into the subject and/or body of a message so that they will be replaced with real values when the message is sent. The variables should be inserted into the text exactly as they are shown below. The following variables can be used:
@@ -569,7 +573,6 @@ $string['signinwithyouremail'] = 'Sign in with your email';
 // Deprecated since Moodle 3.6.
 $string['error:invalidbadgeurl'] = 'Invalid issuer URL format. The URL should have a prefix http:// or https://.';
 $string['backpackbadges'] = 'You have {$a->totalbadges} badge(s) displayed from {$a->totalcollections} collection(s). <a href="mybackpack.php">Change backpack settings</a>.';
-$string['error:nogroups'] = '<p>There are no public collections of badges available in your backpack. </p>
-<p>Only public collections are shown. <a href="http://backpack.openbadges.org">Visit your backpack</a> to create some public collections.</p>';
+$string['error:nogroups'] = '<p>There are no public collections of badges available in your backpack. </p> <p>Only public collections are shown. <a href="https://backpack.openbadges.org">Visit your backpack</a> to create some public collections.</p>';
 $string['nobackpackbadges'] = 'There are no badges in the collections you have selected. <a href="mybackpack.php">Add more collections</a>.';
 $string['nobackpackcollections'] = 'No badge collections have been selected. <a href="mybackpack.php">Add collections</a>.';

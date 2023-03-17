@@ -194,7 +194,7 @@ $string['backuplogdetailed'] = 'Detailed execution log';
 $string['backuploglaststatus'] = 'Last execution log';
 $string['backupmissinguserinfoperms'] = 'Note: This backup contains no user data. Exercise and Workshop activities will not be included in the backup, since these modules are not compatible with this type of backup.';
 $string['backupnext'] = 'Next backup';
-$string['backupnonisowarning'] = 'Warning: this backup is from a non-Unicode version of Moodle (pre 1.6).  If this backup contains any non-ISO-8859-1 texts then they may be CORRUPTED if you try to restore them to this Unicode version of Moodle.  See the <a href="http://docs.moodle.org/en/Backup_FAQ">Backup FAQ</a> for more information about how to recover this backup correctly.';
+$string['backupnonisowarning'] = 'Warning: this backup is from a non-Unicode version of Moodle (pre 1.6). If this backup contains any non-ISO-8859-1 texts then they may be CORRUPTED if you try to restore them to this Unicode version of Moodle. See the <a href="https://docs.moodle.org/en/Backup_FAQ">Backup FAQ</a> for more information about how to recover this backup correctly.';
 $string['backupnotyetrun'] = 'Automated backup pending';
 $string['backuporiginalname'] = 'Backup name';
 $string['backuproleassignments'] = 'Backup role assignments for these roles';
@@ -381,12 +381,11 @@ $string['coursesettings'] = 'Course default settings';
 $string['coursesmovedout'] = 'Courses moved out from {$a}';
 $string['coursespending'] = 'Courses pending approval';
 $string['coursesearch'] = 'Search courses';
-$string['coursesearch_help'] = '<p>You can search for multiple words at once and can refine your search as follows:</p>
-<ul>
-<li>word - find any match of this word within the text.</li>
-<li>+word - only exact matching words will be found.</li>
-<li>-word - don\'t include results containing this word.</li>
-</ul>';
+$string['coursesearch_help'] = 'You can search for multiple words at once and can refine your search as follows:
+
+* word - find any match of this word within the text
+* +word - only exact matching words will be found
+* -word - don\'t include results containing this word.';
 $string['coursestart'] = 'Course start';
 $string['coursesummary'] = 'Course summary';
 $string['coursesummary_help'] = 'The course summary is displayed in the list of courses. A course search searches course summary text in addition to course names.';
@@ -517,7 +516,7 @@ $string['displayonpage'] = 'Display on page';
 $string['dndcourse'] = 'You can drag and drop this course to alter its sorting or to move it to another category.';
 $string['dndenabled_inbox'] = 'You can drag and drop files here to add them.';
 $string['dndnotsupported'] = 'Drag and drop upload not supported';
-$string['dndnotsupported_help'] = 'Your browser does not support drag and drop upload.<br />This feature is available in all recent versions of Chrome, Firefox and Safari, as well as Internet Explorer v10 and above.';
+$string['dndnotsupported_help'] = 'Your browser does not support drag and drop upload. This feature is available in all recent versions of Chrome, Firefox and Safari, as well as Internet Explorer v10 and above.';
 $string['dndnotsupported_insentence'] = 'drag and drop not supported';
 $string['dnduploadwithoutcontent'] = 'This upload does not have any content';
 $string['dndworkingfiletextlink'] = 'Drag and drop files, text or links onto course sections to upload them';
@@ -773,6 +772,7 @@ $string['eventcourseviewed'] = 'Course viewed';
 $string['eventdashboardreset'] = 'Dashboard reset';
 $string['eventdashboardsreset'] = 'Dashboards reset';
 $string['eventdashboardviewed'] = 'Dashboard viewed';
+$string['eventdatabasetextfieldcontentreplaced'] = 'Database global search and replace';
 $string['eventemailfailed'] = 'Email failed to send';
 $string['eventname'] = 'Event name';
 $string['eventrecentactivityviewed'] = 'Recent activity viewed';
@@ -885,36 +885,24 @@ $string['general'] = 'General';
 $string['geolocation'] = 'latitude - longitude';
 $string['gettheselogs'] = 'Get these logs';
 $string['go'] = 'Go';
-$string['gpl'] = 'Copyright (C) 1999 onwards  Martin Dougiamas  (http://moodle.com)
+$string['gpl'] = 'Copyright (C) 1999 onwards Martin Dougiamas (https://moodle.com)
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-See the Moodle License information page for full details:
-http://docs.moodle.org/dev/License';
+See the Moodle License information page for full details: https://docs.moodle.org/dev/License';
 $string['gpllicense'] = 'GPL license';
-$string['gpl3'] = 'Copyright (C) 1999 onwards Martin Dougiamas (http://moodle.com)
+$string['gpl3'] = 'Copyright (C) 1999 onwards Martin Dougiamas (https://moodle.com)
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-See the Moodle License information page for full details:
-http://docs.moodle.org/dev/License';
+See the Moodle License information page for full details: https://docs.moodle.org/dev/License';
 $string['grade'] = 'Grade';
 $string['grades'] = 'Grades';
-$string['gravatarenabled'] = '<a href="http://www.gravatar.com/">Gravatar</a> has been enabled for this site. If you don\'t upload a profile picture Moodle will attempt to load a profile picture for you from Gravatar.';
+$string['gravatarenabled'] = '<a href="https://www.gravatar.com/">Gravatar</a> has been enabled for this site. If you don\'t upload a profile picture Moodle will attempt to load a profile picture for you from Gravatar.';
 $string['group'] = 'Group';
 $string['groupadd'] = 'Add new group';
 $string['groupaddusers'] = 'Add selected to group';
@@ -1153,7 +1141,7 @@ $string['maincoursepage'] = 'Main course page';
 $string['makeafolder'] = 'Create folder';
 $string['makeavailable'] = 'Make available';
 $string['makeeditable'] = 'If you make \'{$a}\' editable by the web server process (eg apache) then you could edit this file directly from this page';
-$string['makethismyhome'] = 'Make this my default home page';
+$string['makethismyhome'] = 'Make this my home page';
 $string['makeunavailable'] = 'Make unavailable';
 $string['manageblocks'] = 'Blocks';
 $string['managecategorythis'] = 'Manage this category';
@@ -1183,8 +1171,8 @@ $string['maxnumberweeks_desc'] = 'The maximum value in the number of sections dr
 $string['maxnumcoursesincombo'] = 'Browse <a href="{$a->link}">{$a->numberofcourses} courses</a>.';
 $string['maxsize'] = 'Max size: {$a}';
 $string['maxsizeandareasize'] = 'Maximum size for new files: {$a->size}, overall limit: {$a->areasize}';
-$string['maxsizeandattachments'] = 'Maximum size for new files: {$a->size}, maximum attachments: {$a->attachments}';
-$string['maxsizeandattachmentsandareasize'] = 'Maximum size for new files: {$a->size}, maximum attachments: {$a->attachments}, overall limit: {$a->areasize}';
+$string['maxsizeandattachments'] = 'Maximum file size: {$a->size}, maximum number of files: {$a->attachments}';
+$string['maxsizeandattachmentsandareasize'] = 'Maximum file size: {$a->size}, maximum number of files: {$a->attachments}, maximum total size: {$a->areasize}';
 $string['memberincourse'] = 'People in the course';
 $string['messagebody'] = 'Message body';
 $string['messagedselectedusers'] = 'Selected users have been messaged and the recipient list has been reset.';
@@ -1242,14 +1230,18 @@ $string['moddoesnotsupporttype'] = 'Module {$a->modname} does not support upload
 $string['modhide'] = 'Hide';
 $string['modshow'] = 'Show';
 $string['modvisible'] = 'Availability';
-$string['modvisible_help'] = 'If the availability is set to \'Show on course page\', the activity or resource is available to students (subject to any access restrictions which may be set).<br><br>
+$string['modvisible_help'] = 'If the availability is set to \'Show on course page\', the activity or resource is available to students (subject to any access restrictions which may be set).
+
 If the availability is set to \'Hide from students\', the activity or resource is only available to users with permission to view hidden activities (by default, users with the role of teacher or non-editing teacher).';
 $string['modvisiblewithstealth'] = 'Availability';
-$string['modvisiblewithstealth_help'] = 'If the availability is set to \'Show on course page\', the activity or resource is available to students (subject to any access restrictions which may be set).<br><br>
-If the availability is set to \'Hide from students\', the activity or resource is only available to users with permission to view hidden activities (by default, users with the role of teacher or non-editing teacher).<br><br>
+$string['modvisiblewithstealth_help'] = 'If the availability is set to \'Show on course page\', the activity or resource is available to students (subject to any access restrictions which may be set).
+
+If the availability is set to \'Hide from students\', the activity or resource is only available to users with permission to view hidden activities (by default, users with the role of teacher or non-editing teacher).
+
 If the course contains many activities or resources, the course page may be simplified by setting the availability to \'Make available but not shown on course page\'. In this case, a link to the activity or resource must be provided from elsewhere, such as from a page resource. The activity would still be listed in the gradebook and other reports.';
 $string['modvisiblehiddensection'] = 'Availability';
-$string['modvisiblehiddensection_help'] = 'If the availability is set to \'Hide from students\', the activity or resource is only available to users with permission to view hidden activities (by default, users with the role of teacher or non-editing teacher).<br><br>
+$string['modvisiblehiddensection_help'] = 'If the availability is set to \'Hide from students\', the activity or resource is only available to users with permission to view hidden activities (by default, users with the role of teacher or non-editing teacher).
+
 If the course contains many activities or resources, the course page may be simplified by setting the availability to \'Make available but not shown on course page\'. In this case, a link to the activity or resource must be provided from elsewhere, such as from a page resource. The activity would still be listed in the gradebook and other reports.';
 $string['moodlelogo'] = 'Moodle logo';
 $string['month'] = 'Month';
@@ -1584,7 +1576,7 @@ $string['privacy:metadata:log:module'] = 'module';
 $string['privacy:metadata:log:time'] = 'The time when the action took place';
 $string['privacy:metadata:log:url'] = 'The URL related to the event';
 $string['privacy:metadata:log:userid'] = 'The ID of the user who performed the action';
-$string['privacy:metadata:task_adhoc'] = 'The status of adhoc tasks.';
+$string['privacy:metadata:task_adhoc'] = 'The status of ad hoc tasks.';
 $string['privacy:metadata:task_adhoc:component'] = 'The component owning the task.';
 $string['privacy:metadata:task_adhoc:nextruntime'] = 'The earliest time to run this task.';
 $string['privacy:metadata:task_adhoc:userid'] = 'The user to run the task as.';
@@ -1639,9 +1631,9 @@ for important notifications such as security alerts and new releases of Moodle.<
 <p>If you choose, you can allow your site name, country and URL to be added to the public list of Moodle Sites.</p>
 <p>All new registrations are verified manually before they are added to the list, but once you are added you can update your registration (and your entry on the public list) at any time by resubmitting this form.</p>';
 $string['registrationinfotitle'] = 'Registration information';
-$string['registrationno'] = 'No, I do not want to receive any email from Moodle HQ';
+$string['registrationno'] = 'No, I do not wish to receive any emails';
 $string['registrationsend'] = 'Send registration information to moodle.org';
-$string['registrationyes'] = 'Yes, notify me about important news (e.g. security issues or releases) ';
+$string['registrationyes'] = 'Yes, notify me of new Moodle releases, security alerts and other important news';
 $string['reject'] = 'Reject';
 $string['rejectdots'] = 'Reject...';
 $string['reload'] = 'Reload';
@@ -1821,6 +1813,7 @@ $string['shortnameuser'] = 'User short name';
 $string['shortsitename'] = 'Short name for site (eg single word)';
 $string['show'] = 'Show';
 $string['showactions'] = 'Show actions';
+$string['showadvancededitor'] = 'Advanced';
 $string['showadvancedsettings'] = 'Show advanced settings';
 $string['showall'] = 'Show all {$a}';
 $string['showallcourses'] = 'Show all courses';
@@ -1833,7 +1826,7 @@ $string['showcommentsnonjs'] = 'Show comments';
 $string['showdescription'] = 'Display description on course page';
 $string['showdescription_help'] = 'If enabled, the description above will be displayed on the course page just below the link to the activity or resource.';
 $string['showgrades'] = 'Show gradebook to students';
-$string['showgrades_help'] = 'Many activities in the course allow grades to be set. This setting determines whether a student can view a list of all their grades for the course via a grades link in the course administration block.';
+$string['showgrades_help'] = 'Many activities in the course allow grades to be set. This setting determines whether a student can view a list of all their grades for the course via a grades link in the navigation drawer or block.';
 $string['showingacourses'] = 'Showing all {$a} courses';
 $string['showingxofycourses'] = 'Showing courses {$a->start} to {$a->end} of {$a->total} courses';
 $string['showlistofcourses'] = 'Show list of courses';
@@ -1920,7 +1913,7 @@ $string['statsreport10'] = 'User activity';
 $string['statsreport11'] = 'Most active courses';
 $string['statsreport12'] = 'Most active courses (weighted)';
 $string['statsreport13'] = 'Most participatory courses (enrolments)';
-$string['statsreport14'] = 'Most participatory courses (views/posts)';
+$string['statsreport14'] = 'Most participatory courses (posts/views)';
 $string['statsreport2'] = 'Views (all roles)';
 $string['statsreport3'] = 'Posts (all roles)';
 $string['statsreport4'] = 'All activity (all roles)';

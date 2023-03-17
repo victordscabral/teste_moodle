@@ -958,7 +958,6 @@ class core_course_externallib_testcase extends externallib_advanced_testcase {
         foreach ($sections[2]['modules'] as $module) {
             if ($module['id'] == $urlcm->id and $module['modname'] == 'url') {
                 $this->assertContains('width=100,height=100', $module['onclick']);
-                $this->assertContains('moodle.org', $module['customdata']);
                 $testexecuted = $testexecuted + 1;
             }
         }
@@ -2334,12 +2333,11 @@ class core_course_externallib_testcase extends externallib_advanced_testcase {
                 $this->assertFalse($adminoptions->outcomes);
                 $this->assertFalse($adminoptions->badges);
                 $this->assertFalse($adminoptions->import);
-                $this->assertFalse($adminoptions->publish);
                 $this->assertFalse($adminoptions->reset);
                 $this->assertFalse($adminoptions->roles);
                 $this->assertFalse($adminoptions->editcompletion);
             } else {
-                $this->assertCount(15, $course['options']);
+                $this->assertCount(14, $course['options']);
                 $this->assertFalse($adminoptions->update);
                 $this->assertFalse($adminoptions->filters);
                 $this->assertFalse($adminoptions->reports);
@@ -2351,7 +2349,6 @@ class core_course_externallib_testcase extends externallib_advanced_testcase {
                 $this->assertFalse($adminoptions->outcomes);
                 $this->assertTrue($adminoptions->badges);
                 $this->assertFalse($adminoptions->import);
-                $this->assertFalse($adminoptions->publish);
                 $this->assertFalse($adminoptions->reset);
                 $this->assertFalse($adminoptions->roles);
                 $this->assertFalse($adminoptions->editcompletion);

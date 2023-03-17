@@ -337,13 +337,13 @@ class core_badges_renderer extends plugin_renderer_base {
 
         if ($USER->id == $userinfo->id && !empty($CFG->enablebadges)) {
             $output .= $this->output->single_button(
-                        new moodle_url('/badges/badge.php', array('hash' => $issued['uid'], 'bake' => true)),
+                        new moodle_url('/badges/badge.php', array('hash' => $ibadge->hash, 'bake' => true)),
                         get_string('download'),
                         'POST');
             if (!empty($CFG->badges_allowexternalbackpack) && ($expiration > $now) && badges_user_has_backpack($USER->id)) {
 
                 if (badges_open_badges_backpack_api() == OPEN_BADGES_V1) {
-                    $assertion = new moodle_url('/badges/assertion.php', array('b' => $issued['uid']));
+                    $assertion = new moodle_url('/badges/assertion.php', array('b' => $ibadge->hash));
                     $action = new component_action('click', 'addtobackpack', array('assertion' => $assertion->out(false)));
                     $attributes = array(
                             'type'  => 'button',
@@ -354,7 +354,7 @@ class core_badges_renderer extends plugin_renderer_base {
                     $this->output->add_action_handler($action, 'addbutton');
                     $output .= $tobackpack;
                 } else {
-                    $assertion = new moodle_url('/badges/backpack-add.php', array('hash' => $issued['uid']));
+                    $assertion = new moodle_url('/badges/backpack-add.php', array('hash' => $ibadge->hash));
                     $attributes = ['class' => 'btn btn-secondary m-1', 'role' => 'button'];
                     $tobackpack = html_writer::link($assertion, get_string('addtobackpack', 'badges'), $attributes);
                     $output .= $tobackpack;
@@ -420,12 +420,14 @@ class core_badges_renderer extends plugin_renderer_base {
 
         $output .= $this->output->heading(get_string('issuancedetails', 'badges'), 3);
         $dl = array();
-        $issued['issuedOn'] = !preg_match( '~^[1-9][0-9]*$~', $issued['issuedOn'] ) ?
-            strtotime($issued['issuedOn']) : $issued['issuedOn'];
+        if (!is_numeric($issued['issuedOn'])) {
+            $issued['issuedOn'] = strtotime($issued['issuedOn']);
+        }
         $dl[get_string('dateawarded', 'badges')] = userdate($issued['issuedOn']);
         if (isset($issued['expires'])) {
-            $issued['expires'] = !preg_match( '~^[1-9][0-9]*$~', $issued['expires'] ) ?
-                strtotime($issued['expires']) : $issued['expires'];
+            if (!is_numeric($issued['expires'])) {
+                $issued['expires'] = strtotime($issued['expires']);
+            }
             if ($issued['expires'] < $now) {
                 $dl[get_string('expirydate', 'badges')] = userdate($issued['expires']) . get_string('warnexpired', 'badges');
 
@@ -508,7 +510,7 @@ class core_badges_renderer extends plugin_renderer_base {
         }
         $output .= html_writer::empty_tag('img', array('src' => $issued->image, 'width' => '100'));
         if (isset($assertion->expires)) {
-            $expiration = !strtotime($assertion->expires) ? s($assertion->expires) : strtotime($assertion->expires);
+            $expiration = is_numeric($assertion->expires) ? $assertion->expires : strtotime($assertion->expires);
             if ($expiration < $today) {
                 $output .= $this->output->pix_icon('i/expired',
                         get_string('expireddate', 'badges', userdate($expiration)),
@@ -564,7 +566,7 @@ class core_badges_renderer extends plugin_renderer_base {
 
         $dl = array();
         if (isset($assertion->issued_on)) {
-            $issuedate = !strtotime($assertion->issued_on) ? s($assertion->issued_on) : strtotime($assertion->issued_on);
+            $issuedate = is_numeric($assertion->issued_on) ? $assertion->issued_on : strtotime($assertion->issued_on);
             $dl[get_string('dateawarded', 'badges')] = userdate($issuedate);
         }
         if (isset($assertion->expires)) {
@@ -1359,5 +1361,36 @@ class core_badges_renderer extends plugin_renderer_base {
     public function render_external_backpacks_page(\core_badges\output\external_backpacks_page $page) {
         $data = $page->export_for_template($this);
         return parent::render_from_template('core_badges/external_backpacks_page', $data);
+    }
+
+    /**
+     * Get the result of a backpack validation with its settings. It returns:
+     * - A informative message if the backpack version is different from OBv2.
+     * - A warning with the error if it's not possible to connect to this backpack.
+     * - A successful message if the connection has worked.
+     *
+     * @param  int    $backpackid The backpack identifier.
+     * @return string A message with the validation result.
+     */
+    public function render_test_backpack_result(int $backpackid): string {
+        // Get the backpack.
+        $backpack = badges_get_site_backpack($backpackid);
+
+        // Add the header to the result.
+        $result = $this->heading(get_string('testbackpack', 'badges', $backpack->backpackweburl));
+
+        if ($backpack->apiversion != OPEN_BADGES_V2) {
+            // Only OBv2 supports this validation.
+            $result .= get_string('backpackconnectionnottested', 'badges');
+        } else {
+            $message = badges_verify_backpack($backpackid);
+            if (empty($message)) {
+                $result .= get_string('backpackconnectionok', 'badges');
+            } else {
+                $result .= $message;
+            }
+        }
+
+        return $result;
     }
 }
